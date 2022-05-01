@@ -15,7 +15,8 @@ use utf8;
 
 package Sys::OsPackage::Driver;
 
-# all drivers respond to ping for testing: demonstrate module is accessible without launching packaging commands
+# demonstrate module is accessible without launching packaging commands
+# all drivers inherit this to respond to ping for testing
 sub ping
 {
     my $class = shift;

@@ -39,13 +39,13 @@ my %sysconf = (
 my %platconf = (
     # platform packaging handler class name
     packager => {
-        alpine => "Sys::OsRelease::Alpine",
-        arch => "Sys::OsRelease::Arch",
-        centos => "Sys::OsRelease::RPM", # CentOS no longer exists. But this matches ID_LIKE for CentOS-derived systems (Rocky, Alma).
-        debian => "Sys::OsRelease::Debian",
-        fedora => "Sys::OsRelease::RPM",
-        suse => "Sys::OsRelease::Suse",
-        ubuntu => "Sys::OsRelease::Debian",
+        alpine => "Sys::OsPackage::Driver::Alpine",
+        arch => "Sys::OsPackage::Driver::Arch",
+        centos => "Sys::OsPackage::Driver::RPM", # CentOS no longer exists; CentOS derivatives supported via ID_LIKE
+        debian => "Sys::OsPackage::Driver::Debian",
+        fedora => "Sys::OsPackage::Driver::RPM",
+        suse => "Sys::OsPackage::Driver::Suse",
+        ubuntu => "Sys::OsPackage::Driver::Debian",
     },
 
     # package name override where computed name is not correct
@@ -111,23 +111,19 @@ my %perlconf = (
 sub class_or_obj
 {
     my $coo = shift;
+    return $coo if ref $coo; # return it if it's an object
 
-    # safety net: all-stop if we get undef
+    # safety net: all-stop if we received an undef
     if (not defined $coo) {
         confess "coo got undef from:".(join "|", caller 1);
     }
 
-    # check that the instance is initialized
-    if (not ref $coo and not $coo->defined_instance()) {
-        return $coo->instance();
-    }
-
     # return the instance
-    my $instance = $coo->can("instance");
-    if (not $instance) {
-        confess "incompatible coo $coo from:".(join "|", caller 1);
+    my $inst_method = $coo->can("instance");
+    if (not $inst_method) {
+        confess "incompatible class $coo from:".(join "|", caller 1);
     }
-    return $instance;
+    return &$inst_method($coo);
 }
 
 # system configuration
@@ -152,6 +148,7 @@ sub platconf
     my ($class_or_obj, $key) = @_;
     my $self = class_or_obj($class_or_obj);
 
+    return if not defined $self->platform();
     return if not exists $platconf{$key}{$self->platform()};
     return $platconf{$key}{$self->platform()};
 }
@@ -162,6 +159,7 @@ sub platconf
 #
 
 # initialize a new instance
+## no critic (Subroutines::ProhibitUnusedPrivateSubroutines) # called by imported instance() - perlcritic can't see it
 sub _new_instance
 {
     my ($class, @params) = @_;
@@ -190,6 +188,9 @@ sub _new_instance
     } elsif (exists $ENV{SYS_OSPACKAGE_DEBUG}) {
         $obj_ref->{debug} = deftrue($ENV{SYS_OSPACKAGE_DEBUG});
     }
+    if (deftrue($obj_ref->{debug})) {
+        print STDERR "_new_instance($class, ".join(", ", @params).")\n";
+    }
     $obj_ref->{sysenv} = {};
     $obj_ref->{module_installed} = {};
     $obj_ref->collect_sysenv();
@@ -197,6 +198,7 @@ sub _new_instance
     # instantiate object
     return $obj_ref;
 }
+## use critic (Subroutines::ProhibitUnusedPrivateSubroutines)
 
 # utility: test if a value is defined and is true
 sub deftrue
@@ -221,7 +223,17 @@ sub debug
     return $self->{debug};
 }
 
+# read-only accessor for quiet flag
+sub quiet
+{
+    my ($class_or_obj, $value) = @_;
+    my $self = class_or_obj($class_or_obj);
+
+    return deftrue($self->{_config}{quiet});
+}
+
 # read/write accessor for system environment data
+# sysenv is the data collected about the system and commands
 sub sysenv
 {
     my ($class_or_obj, $key, $value) = @_;
@@ -426,13 +438,14 @@ sub cmd_path
 # utility function
 sub dedup_path
 {
-    my @in_paths = @_;
+    my ($class_or_obj, @in_paths) = @_;
+    my $self = class_or_obj($class_or_obj);
+
+    # construct path lists and deduplicate
     my @out_path;
     my %path_seen;
-    
-    # construct path lists and deduplicate
     foreach my $dir (map {split /:/x, $_} @in_paths) {
-        __PACKAGE->debug() and print STDERR "debug: found $dir\n";
+        $self->debug() and print STDERR "debug: found $dir\n";
         if ($dir eq "." ) {
             # omit "." for good security practice
             next;
@@ -440,7 +453,7 @@ sub dedup_path
         # add the path if it hasn't already been seen, and it exists
         if (not exists $path_seen{$dir} and -d $dir) {
             push @out_path, $dir;
-            __PACKAGE->debug() and print STDERR "debug: pushed $dir\n";
+            $self->debug() and print STDERR "debug: pushed $dir\n";
         }
         $path_seen{$dir} = 1;
     }
@@ -470,7 +483,7 @@ sub user_perldir_search_loop
         {
             foreach my $perlname (qw(perl perl5)) {
                 if (-d "$dirpath/$perlname" and -w "$dirpath/$perlname") {
-                    $self->sysenv("perlbase") = $dirpath."/".$perlname;
+                    $self->sysenv("perlbase", $dirpath."/".$perlname);
                     last DIRLOOP;
                 }
             }
@@ -490,12 +503,12 @@ sub user_perldir_create
         my $need_path;
         foreach my $need_dir ($self->sysenv("home"), ".local", "perl", "lib", "perl5") {
             $need_path = (defined $need_path) ? "$need_path/$need_dir" : $need_dir;
-            if (! -d $need_path) {
+            if (not -d $need_path) {
                 mkdir $need_path, 755
                     or croak "failed to create $need_path: $!";
             }
         }
-        $self->sysenv("perlbase") = $self->sysenv("home")."/.local/perl";
+        $self->sysenv("perlbase", $self->sysenv("home")."/.local/perl");
         symlink $self->sysenv("home")."/.local/perl", $self->sysenv("perlbase")
             or croak "failed to symlink ".$self->sysenv("home")."/.local/perl to ".$self->sysenv("perlbase").": $!";
     }
@@ -540,7 +553,7 @@ sub user_perldir_search
     }
     foreach my $dirpath (@lib_hints) {
         if (-d $dirpath and -w $dirpath) {
-            $self->sysenv("perlbase") = $dirpath;
+            $self->sysenv("perlbase", $dirpath);
             last;
         }
     }
@@ -575,9 +588,9 @@ sub set_user_env
 
         # update PATH
         if (exists $ENV{PATH}) {
-            $ENV{PATH} = dedup_path($ENV{PATH}, $self->sysenv("perlbase")."/bin");
+            $ENV{PATH} = $self->dedup_path($ENV{PATH}, $self->sysenv("perlbase")."/bin");
         } else {
-            $ENV{PATH} = dedup_path("/usr/bin:/bin", $self->sysenv("perlbase")."/bin", "/usr/local/bin");
+            $ENV{PATH} = $self->dedup_path("/usr/bin:/bin", $self->sysenv("perlbase")."/bin", "/usr/local/bin");
         }
 
         # because we modified PATH: remove path cache/flags and force them to be regenerated
@@ -586,14 +599,14 @@ sub set_user_env
 
         # update PERL5LIB
         if (exists $ENV{PERL5LIB}) {
-            $ENV{PERL5LIB} = dedup_path($ENV{PERL5LIB}, $self->sysenv("perlbase")."/lib/perl5");
+            $ENV{PERL5LIB} = $self->dedup_path($ENV{PERL5LIB}, $self->sysenv("perlbase")."/lib/perl5");
         } else {
-            $ENV{PERL5LIB} = dedup_path(@INC, $self->sysenv("perlbase")."/lib/perl5");
+            $ENV{PERL5LIB} = $self->dedup_path(@INC, $self->sysenv("perlbase")."/lib/perl5");
         }
 
         # update PERL_LOCAL_LIB_ROOT/PERL_MB_OPT/PERL_MM_OPT for local::lib
         if (exists $ENV{PERL_LOCAL_LIB_ROOT}) {
-            $ENV{PERL_LOCAL_LIB_ROOT} = dedup_path($ENV{PERL_LOCAL_LIB_ROOT}, $self->sysenv("perlbase"));
+            $ENV{PERL_LOCAL_LIB_ROOT} = $self->dedup_path($ENV{PERL_LOCAL_LIB_ROOT}, $self->sysenv("perlbase"));
         } else {
             $ENV{PERL_LOCAL_LIB_ROOT} = $self->sysenv("perlbase");
         }
@@ -605,20 +618,22 @@ sub set_user_env
 
         # update MANPATH
         if (exists $ENV{MANPATH}) {
-            $ENV{MANPATH} = dedup_path($ENV{MANPATH}, $self->sysenv("perlbase")."/man");
+            $ENV{MANPATH} = $self->dedup_path($ENV{MANPATH}, $self->sysenv("perlbase")."/man");
         } else {
-            $ENV{MANPATH} = dedup_path("usr/share/man", $self->sysenv("perlbase")."/man", "/usr/local/share/man");
+            $ENV{MANPATH} = $self->dedup_path("usr/share/man", $self->sysenv("perlbase")."/man", "/usr/local/share/man");
         }
     }
 
     # display updated environment variables
-    print "using environment settings: (add these to login shell rc script if needed)\n";
-    print "".('-' x 75)."\n";
-    foreach my $varname (qw(PATH PERL5LIB PERL_LOCAL_LIB_ROOT PERL_MB_OPT PERL_MM_OPT MANPATH)) {
-        print "export $varname=$ENV{$varname}\n";
+    if (not $self->quiet()) {
+        print "using environment settings: (add these to login shell rc script if needed)\n";
+        print "".('-' x 75)."\n";
+        foreach my $varname (qw(PATH PERL5LIB PERL_LOCAL_LIB_ROOT PERL_MB_OPT PERL_MM_OPT MANPATH)) {
+            print "export $varname=$ENV{$varname}\n";
+        }
+        print "".('-' x 75)."\n";
+        print "\n";
     }
-    print "".('-' x 75)."\n";
-    print "\n";
     return;
 }
 
@@ -662,7 +677,9 @@ sub resolve_platform
     } else {
         $detected = $self->platform()." (no os-release data)";
     }
-    print $self->text_green()."system detected: $detected".$self->text_color_reset()."\n";
+    if (not $self->quiet()) {
+        print $self->text_green()."system detected: $detected".$self->text_color_reset()."\n";
+    }
     return;
 }
 
@@ -704,7 +721,7 @@ sub collect_sysenv
             if (ref $sysenv->{$key} eq "ARRAY") {
                 print STDERR "   $key => [".join(" ", @{$sysenv->{$key}})."]\n";
             } else {
-                print STDERR "   $key => ".(exists $sysenv->{$key} ? $sysenv->{$key} : "(undef)\n");
+                print STDERR "   $key => ".(exists $sysenv->{$key} ? $sysenv->{$key} : "(undef)")."\n";
             }
         }
     }
@@ -798,17 +815,21 @@ sub manage_pkg
     }
 
     # look up function which implements op for package type
+    ## no critic (BuiltinFunctions::ProhibitStringyEval) # need stringy eval to load a class from a string
+    eval "require ".$self->packager()
+        or croak "failed to load driver class ".$self->packager();
+    ## use critic (BuiltinFunctions::ProhibitStringyEval)
     my $funcname = $self->packager()."::".$args{op};
     $self->debug() and print STDERR "debug: $funcname(".join(" ", map {$_."=".$args{$_}} sort keys %args).")\n";
     my $funcref = $self->packager()->can($args{op});
     if (not defined $funcref) {
-        # not implemented
+        # not implemented - subroutine name not found in driver class
         $self->debug() and print STDERR "debug: $funcname not implemented\n";
         return;
     }
 
     # call the function
-    return $funcref->(\%args);
+    return $funcref->($self->packager(), $self, \%args);
 }
 
 # return string to turn text green
@@ -851,9 +872,11 @@ sub module_package
     # handle various package managers
     my $pkgname = $self->manage_pkg(op => "modpkg", module => $module);
     return 0 if (not defined $pkgname) or length($pkgname) == 0;
-    print "\n";
-    print $self->text_green()."install $pkgname for $module using ".$self->sysenv("packager")
-        .$self->text_color_reset()."\n";
+    if (not $self->quiet()) {
+        print "\n";
+        print $self->text_green()."install $pkgname for $module using ".$self->sysenv("packager")
+            .$self->text_color_reset()."\n";
+    }
 
     return $self->manage_pkg(op => "install", pkg => $pkgname);
 }
@@ -867,12 +890,14 @@ sub check_module
     # check if module is installed
     if (not $self->module_installed($name)) {
         # print header for module installation
-        print  $self->text_green().('-' x 75)."\n";
-        print "install $name".$self->text_color_reset()."\n";
+        if (not $self->quiet()) {
+            print  $self->text_green().('-' x 75)."\n";
+            print "install $name".$self->text_color_reset()."\n";
+        }
 
         # try first to install it with an OS package (root required)
         my $done=0;
-        if (is_root()) {
+        if ($self->is_root()) {
             if ($self->module_package($name)) {
                 $self->module_installed($name, 1);
                 $done=1;
@@ -900,7 +925,7 @@ sub bootstrap_cpanm
     my $old_pwd = $self->pwd();
 
     # make build directory and change into it
-    if (! -d "build") {
+    if (not -d "build") {
         mkdir "build"
             or croak "can't make build directory in current directory: $!";
     }
@@ -956,7 +981,7 @@ sub establish_cpan
     # install CPAN-Minus if neither CPAN nor CPAN-Minus exist
     if (not defined $self->sysenv("cpan") and not defined $self->sysenv("cpanm")) {
         # try to install CPAN-Minus as an OS package
-        if (is_root()) {
+        if ($self->is_root()) {
             if ($self->module_package("App::cpanminus")) {
                 $self->sysenv("cpanm", $self->cmd_path("cpanm"));
             }
