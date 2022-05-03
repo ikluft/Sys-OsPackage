@@ -34,7 +34,7 @@ sub modpkg
     # search by deb format for Perl module packages
     my $pkgname = "lib".join("-", (map {lc $_} @{$args_ref->{mod_parts}}), "perl");
     $args_ref->{pkg} = $pkgname;
-    if (not $class->find($args_ref)) {
+    if (not $class->find($ospkg, $args_ref)) {
         return;
     }
     $ospkg->debug() and print STDERR "debug(".__PACKAGE__."->modpkg): $pkgname\n";
@@ -78,3 +78,54 @@ sub install
 }
 
 1;
+
+__END__
+
+# POD documentation
+=encoding utf8
+
+=head1 NAME
+
+Sys::OsPackage::Driver::Debian - Debian DEB packaging handler for Sys::OsPackage
+
+=head1 SYNOPSIS
+
+  my $ospkg = Sys::OsPackage->instance();
+
+  # check if packaging commands exist for this system
+  if (not $ospkg->manage_pkg(op => "implemented")) {
+    return 0;
+  }
+
+  # find OS package name for Perl module
+  my $pkgname = $ospkg->manage_pkg(op => "find", module => $module);
+
+  # install a Perl module as an OS package
+  my $result1 = $ospkg->manage_pkg(op => "modpkg", module => $module);
+
+  # install an OS package
+  my $result2 = $ospkg->manage_pkg(op => "install", pkg => $pkgname);
+
+
+=head1 DESCRIPTION
+
+⛔ This is for Sys::OsPackage internal use only.
+
+The Sys::OsPackage method manage_pkg() will call the correct driver for the running platform.
+The driver implements these methods: I<pkgcmd>, I<modpkg>, I<find>, I<install> and I<ping>.
+
+=head1 SEE ALSO
+
+GitHub repository for Sys::OsPackage: L<https://github.com/ikluft/Sys-OsPackage>
+
+=head1 BUGS AND LIMITATIONS
+
+Please report bugs via GitHub at L<https://github.com/ikluft/Sys-OsPackage/issues>
+
+Patches and enhancements may be submitted via a pull request at L<https://github.com/ikluft/Sys-OsPackage/pulls>
+
+=head1 LICENSE INFORMATION
+
+Copyright (c) 2022 by Ian Kluft
+
+This module is distributed in the hope that it will be useful, but it is provided “as is” and without any express or implied warranties. For details, see the full text of the license in the file LICENSE or at L<https://www.perlfoundation.org/artistic-license-20.html>.

@@ -828,7 +828,7 @@ sub manage_pkg
         return;
     }
 
-    # call the function
+    # call the function with parameters: driver class (class method call), Sys::OsPackage instance, arguments
     return $funcref->($self->packager(), $self, \%args);
 }
 
@@ -1018,3 +1018,34 @@ sub establish_cpan
 }
 
 1;
+
+__END__
+
+# POD documentation
+=encoding utf8
+
+=head1 NAME
+
+Sys::OsPackage - install OS packages and determine if CPAN modules are packaged for the OS
+
+=head1 SYNOPSIS
+
+
+=head1 DESCRIPTION
+
+
+=head1 SEE ALSO
+
+GitHub repository for Sys::OsPackage: L<https://github.com/ikluft/Sys-OsPackage>
+
+=head1 BUGS AND LIMITATIONS
+
+Please report bugs via GitHub at L<https://github.com/ikluft/Sys-OsPackage/issues>
+
+Patches and enhancements may be submitted via a pull request at L<https://github.com/ikluft/Sys-OsPackage/pulls>
+
+=head1 LICENSE INFORMATION
+
+Copyright (c) 2022 by Ian Kluft
+
+This module is distributed in the hope that it will be useful, but it is provided “as is” and without any express or implied warranties. For details, see the full text of the license in the file LICENSE or at L<https://www.perlfoundation.org/artistic-license-20.html>.
