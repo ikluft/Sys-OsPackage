@@ -23,7 +23,7 @@ BEGIN {
 }
 
 # system configuration
-my %sysconf = (
+my %_sysconf = (
     # additional common IDs to provide to Sys::OsRelease to recognize as common platforms in ID_LIKE attributes
     # this adds CentOS to recognized common platforms because we use it to recognize Rocky and Alma as needing EPEL
     common_id => [qw(centos)],
@@ -36,7 +36,7 @@ my %sysconf = (
 # platform/package configuration
 # all entries in here have a second-level hash keyed on the platform
 # TODO: refactor to delegate this to packaging driver classes
-my %platconf = (
+my %_platconf = (
     # platform packaging handler class name
     packager => {
         alpine => "Sys::OsPackage::Driver::Alpine",
@@ -80,7 +80,7 @@ my %platconf = (
 );
 
 # Perl-related configuration (read only)
-my %perlconf = (
+my %_perlconf = (
     sources => {
         "App::cpanminus" => 'https://cpan.metacpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7046.tar.gz',
     },
@@ -130,27 +130,28 @@ sub class_or_obj
 sub sysconf
 {
     my $key = shift;
-    return if not exists $sysconf{$key};
-    return $sysconf{$key};
+    return if not exists $_sysconf{$key};
+    return $_sysconf{$key};
 }
 
 # Perl configuration
 sub perlconf
 {
     my $key = shift;
-    return if not exists $perlconf{$key};
-    return $perlconf{$key};
+    return if not exists $_perlconf{$key};
+    return $_perlconf{$key};
 }
 
 # platform configuration
+sub _platconf { return \%_platconf; } # for testing
 sub platconf
 {
     my ($class_or_obj, $key) = @_;
     my $self = class_or_obj($class_or_obj);
 
     return if not defined $self->platform();
-    return if not exists $platconf{$key}{$self->platform()};
-    return $platconf{$key}{$self->platform()};
+    return if not exists $_platconf{$key}{$self->platform()};
+    return $_platconf{$key}{$self->platform()};
 }
 
 #
@@ -305,7 +306,7 @@ sub cpan_prereqs
     my ($class_or_obj) = @_;
     my $self = class_or_obj($class_or_obj);
 
-    my @prereqs = @{$perlconf{cpan_deps}};
+    my @prereqs = @{perlconf("cpan_deps")};
     my $plat_prereq = $self->platconf("prereq");
     if ((defined $plat_prereq)
         and (ref $plat_prereq eq "ARRAY"))
@@ -436,7 +437,7 @@ sub cmd_path
 
 # de-duplicate a colon-delimited path
 # utility function
-sub dedup_path
+sub _dedup_path
 {
     my ($class_or_obj, @in_paths) = @_;
     my $self = class_or_obj($class_or_obj);
@@ -461,7 +462,7 @@ sub dedup_path
 }
 
 # save library hints where user's local Perl modules go, observed in search/cleanup of paths
-sub save_hint
+sub _save_hint
 {
     my ($item, $lib_hints_ref, $hints_seen_ref) = @_;
     if (not exists $hints_seen_ref->{$item}) {
@@ -529,7 +530,7 @@ sub user_perldir_search
         foreach my $item (split /:/x, $ENV{PERL_LOCAL_LIB_ROOT}) {
             if ($item =~ qr(^$home/)x) {
                 $item =~ s=/$==x; # remove trailing slash if present
-                save_hint($item, \@lib_hints, \%hints_seen);
+                _save_hint($item, \@lib_hints, \%hints_seen);
             }
         }
     }
@@ -538,7 +539,7 @@ sub user_perldir_search
             if ($item =~ qr(^$home/)x) {
                 $item =~ s=/$==x; # remove trailing slash if present
                 $item =~ s=/[^/]+$==x; # remove last directory from path
-                save_hint($item, \@lib_hints, \%hints_seen);
+                _save_hint($item, \@lib_hints, \%hints_seen);
             }
         }
     }
@@ -547,7 +548,7 @@ sub user_perldir_search
             if ($item =~ qr(^$home/)x and $item =~ qr(/perl[5]?/)x) {
                 $item =~ s=/$==x; # remove trailing slash if present
                 $item =~ s=/[^/]+$==x; # remove last directory from path
-                save_hint($item, \@lib_hints, \%hints_seen);
+                _save_hint($item, \@lib_hints, \%hints_seen);
             }
         }
     }
@@ -588,9 +589,9 @@ sub set_user_env
 
         # update PATH
         if (exists $ENV{PATH}) {
-            $ENV{PATH} = $self->dedup_path($ENV{PATH}, $self->sysenv("perlbase")."/bin");
+            $ENV{PATH} = $self->_dedup_path($ENV{PATH}, $self->sysenv("perlbase")."/bin");
         } else {
-            $ENV{PATH} = $self->dedup_path("/usr/bin:/bin", $self->sysenv("perlbase")."/bin", "/usr/local/bin");
+            $ENV{PATH} = $self->_dedup_path("/usr/bin:/bin", $self->sysenv("perlbase")."/bin", "/usr/local/bin");
         }
 
         # because we modified PATH: remove path cache/flags and force them to be regenerated
@@ -599,14 +600,14 @@ sub set_user_env
 
         # update PERL5LIB
         if (exists $ENV{PERL5LIB}) {
-            $ENV{PERL5LIB} = $self->dedup_path($ENV{PERL5LIB}, $self->sysenv("perlbase")."/lib/perl5");
+            $ENV{PERL5LIB} = $self->_dedup_path($ENV{PERL5LIB}, $self->sysenv("perlbase")."/lib/perl5");
         } else {
-            $ENV{PERL5LIB} = $self->dedup_path(@INC, $self->sysenv("perlbase")."/lib/perl5");
+            $ENV{PERL5LIB} = $self->_dedup_path(@INC, $self->sysenv("perlbase")."/lib/perl5");
         }
 
         # update PERL_LOCAL_LIB_ROOT/PERL_MB_OPT/PERL_MM_OPT for local::lib
         if (exists $ENV{PERL_LOCAL_LIB_ROOT}) {
-            $ENV{PERL_LOCAL_LIB_ROOT} = $self->dedup_path($ENV{PERL_LOCAL_LIB_ROOT}, $self->sysenv("perlbase"));
+            $ENV{PERL_LOCAL_LIB_ROOT} = $self->_dedup_path($ENV{PERL_LOCAL_LIB_ROOT}, $self->sysenv("perlbase"));
         } else {
             $ENV{PERL_LOCAL_LIB_ROOT} = $self->sysenv("perlbase");
         }
@@ -618,9 +619,9 @@ sub set_user_env
 
         # update MANPATH
         if (exists $ENV{MANPATH}) {
-            $ENV{MANPATH} = $self->dedup_path($ENV{MANPATH}, $self->sysenv("perlbase")."/man");
+            $ENV{MANPATH} = $self->_dedup_path($ENV{MANPATH}, $self->sysenv("perlbase")."/man");
         } else {
-            $ENV{MANPATH} = $self->dedup_path("usr/share/man", $self->sysenv("perlbase")."/man", "/usr/local/share/man");
+            $ENV{MANPATH} = $self->_dedup_path("usr/share/man", $self->sysenv("perlbase")."/man", "/usr/local/share/man");
         }
     }
 
