@@ -143,7 +143,9 @@ sub perlconf
 }
 
 # platform configuration
+## no critic (Subroutines::ProhibitUnusedPrivateSubroutines)
 sub _platconf { return \%_platconf; } # for testing
+## use critic (Subroutines::ProhibitUnusedPrivateSubroutines)
 sub platconf
 {
     my ($class_or_obj, $key) = @_;
@@ -817,8 +819,9 @@ sub manage_pkg
 
     # look up function which implements op for package type
     ## no critic (BuiltinFunctions::ProhibitStringyEval) # need stringy eval to load a class from a string
-    eval "require ".$self->packager()
-        or croak "failed to load driver class ".$self->packager();
+    if (not eval "require ".$self->packager()) {
+        croak "failed to load driver class ".$self->packager();
+    }
     ## use critic (BuiltinFunctions::ProhibitStringyEval)
     my $funcname = $self->packager()."::".$args{op};
     $self->debug() and print STDERR "debug: $funcname(".join(" ", map {$_."=".$args{$_}} sort keys %args).")\n";

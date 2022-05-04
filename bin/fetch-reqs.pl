@@ -60,3 +60,38 @@ Sys::OsPackage->establish_cpan(); # make sure CPAN is available
 foreach my $arg (@ARGV) {
     process($arg);
 }
+
+__END__
+
+# POD documentation
+=encoding utf8
+
+=head1 NAME
+
+fetch-reqs.pl - install prerequisite modules for a Perl script with minimal prerequisites for this tool
+
+=head1 USAGE
+
+  fetch-reqs.pl filename [...]
+
+=head1 USAGE
+
+=head1 OPTIONS
+
+=head1 EXIT STATUS
+
+=head1 SEE ALSO
+
+GitHub repository for Sys::OsPackage: L<https://github.com/ikluft/Sys-OsPackage>
+
+=head1 BUGS AND LIMITATIONS
+
+Please report bugs via GitHub at L<https://github.com/ikluft/Sys-OsPackage/issues>
+
+Patches and enhancements may be submitted via a pull request at L<https://github.com/ikluft/Sys-OsPackage/pulls>
+
+=head1 LICENSE INFORMATION
+
+Copyright (c) 2022 by Ian Kluft
+
+This module is distributed in the hope that it will be useful, but it is provided “as is” and without any express or implied warranties. For details, see the full text of the license in the file LICENSE or at L<https://www.perlfoundation.org/artistic-license-20.html>.
