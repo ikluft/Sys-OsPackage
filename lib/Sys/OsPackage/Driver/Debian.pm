@@ -77,6 +77,19 @@ sub install
     return $ospkg->run_cmd($pkgcmd, "install", "--yes", @packages);
 }
 
+# check if an OS package is installed locally
+sub is_installed
+{
+    my ($class, $ospkg, $args_ref) = @_;
+    return if not $class->pkgcmd($ospkg);
+
+    # check if package is installed
+    my $querycmd = $ospkg->sysenv("dpkg-query");
+    my @pkglist = $ospkg->capture_cmd({list=>1}, $querycmd, qw(--show), $args_ref->{pkg}); # TODO quiet stderr
+    return (scalar @pkglist > 0) ? 1 : 0;
+}
+
+
 1;
 
 __END__

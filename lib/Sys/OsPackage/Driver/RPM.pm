@@ -78,6 +78,18 @@ sub install
     return $ospkg->run_cmd($pkgcmd, "install", "--assumeyes", "--setopt=install_weak_deps=false", @packages);
 }
 
+# check if an OS package is installed locally
+sub is_installed
+{
+    my ($class, $ospkg, $args_ref) = @_;
+    return if not $class->pkgcmd($ospkg);
+
+    # check if package is installed
+    my $querycmd = $ospkg->sysenv("rpm");
+    my @pkglist = $ospkg->capture_cmd({list=>1}, $querycmd, qw(--query), $args_ref->{pkg});
+    return (scalar @pkglist > 0) ? 1 : 0;
+}
+
 1;
 
 __END__
@@ -113,7 +125,7 @@ Sys::OsPackage::Driver::RPM - Fedora/RedHat RPM packaging handler for Sys::OsPac
 ⛔ This is for Sys::OsPackage internal use only.
 
 The Sys::OsPackage method manage_pkg() will call the correct driver for the running platform.
-The driver implements these methods: I<pkgcmd>, I<modpkg>, I<find>, I<install> and I<ping>.
+The driver implements these methods: I<pkgcmd>, I<modpkg>, I<find>, I<install>, I<is_installed> and I<ping>.
 
 =head1 SEE ALSO
 

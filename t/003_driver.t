@@ -15,12 +15,12 @@ use Test::More;
 
 # constants
 my @packagers = qw(Alpine Arch Debian RPM);
-my @required_methods = qw(ping pkgcmd modpkg find install);
+my @required_methods = qw(ping pkgcmd modpkg find install is_installed);
 
-plan tests => (scalar @packagers) * (2 + scalar @required_methods);
+plan tests => (scalar @packagers) * (3 + scalar @required_methods);
 
 my $ospkg = Sys::OsPackage->instance(quiet => 1);
-foreach my $packager (@packagers) {
+foreach my $packager (sort @packagers) {
     my $driver = "Sys::OsPackage::Driver::$packager";
 
     # test that driver responds to ping
@@ -31,7 +31,8 @@ foreach my $packager (@packagers) {
 
     # test that driver implements required methods
     require_ok($driver); # technically already done by Sys::OsPackage::manage_pkg()
-    foreach my $req (@required_methods) {
+    ok($driver->can("__notfound__") ? 0 : 1, "driver $driver does not implement __notfound__ method");
+    foreach my $req (sort @required_methods) {
         ok($driver->can($req), "driver $driver implements $req method");
     }
 }
