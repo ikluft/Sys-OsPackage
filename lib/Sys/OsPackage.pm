@@ -885,6 +885,16 @@ sub module_package
     return $self->manage_pkg(op => "install", pkg => $pkgname);
 }
 
+# check if OS package is installed
+sub pkg_installed
+{
+    my ($class_or_obj, $pkgname) = @_;
+    my $self = class_or_obj($class_or_obj);
+
+    return 0 if (not defined $pkgname) or length($pkgname) == 0;
+    return $self->manage_pkg(op => "is_installed", pkg => $pkgname);
+}
+
 # check if module is installed, and install it if not present
 sub check_module
 {

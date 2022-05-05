@@ -1,0 +1,64 @@
+#!/bin/sh
+# Sys::OsPackage test container startup script
+# Ian Kluft
+# This is the first thing to run inside the container. It needs to install dependencies for the unit test script.
+cd /work
+
+{
+    # distro-specific setup
+    if [ -f /etc/os-release ]
+    then
+        . /etc/os-release
+        echo "system release id: $ID"
+    else
+        echo "/etc/os-release not found"
+    fi
+    if [ $ID = "debian" -o $ID = "ubuntu" ]
+    then
+        apt update --yes
+        apt install --yes perl-modules libmodule-build-perl libyaml-perl make tar
+    elif [ $ID = "fedora" -o $ID = "rocky" -o $ID = "almalinux" ]
+    then
+        dnf upgrade --assumeyes
+        dnf --assumeyes install perl perl-Module-Build perl-YAML make tar < /dev/null
+    elif [ $ID = "alpine" ]
+    then
+        apk update
+        apk add perl perl-module-build perl-yaml make tar < /dev/null
+    elif [ $ID = "arch" ]
+    then
+        pacman --sync --refresh
+        pacman --sync --needed --noconfirm perl perl-module-build perl-yaml make tar
+    fi
+    if [ -f /etc/profile ]
+    then
+        . /etc/profile
+    fi
+
+    # adjust PERL5LIB
+    perl5dirs=$([ -d /usr/share/perl5 ] && echo /usr/share/perl5; [ -d /usr/share/perl ] && echo /usr/share/perl/*)
+    if [ -n "$perl5dirs" ]
+    then
+        export PERL5LIB=$(perl -e 'print join(":", qw(/work/lib), @INC, qw('"$perl5dirs"'))."\n";')
+    fi
+
+    # unpack Sys::OsRelease tarball
+    for mod in Sys-OsRelease Sys-OsPackage
+    do
+        tarball="$(ls -1 $mod-*.tar.gz | tail -1)"
+        [ -f "$tarball" ] || continue;
+        basemod="$(basename $tarball .tar.gz)"
+        (tar -xf $tarball \
+            && cd $basemod \
+            && perl Build.PL \
+            && perl Build \
+            && perl Build test \
+            && perl Build install)
+    done
+
+    # load modules (as OS pacakges if possible) needed for container-tests.pl to run
+    bin/fetch-reqs.pl container-tests.pl || exit 1
+} # >/dev/null 2>&1
+
+# run tests now that their dependencies are loaded
+exec "./container-tests.pl";
