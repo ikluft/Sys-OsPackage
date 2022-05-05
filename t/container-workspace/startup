@@ -43,6 +43,7 @@ cd /work
     fi
 
     # unpack Sys::OsRelease tarball
+    cleandirs=""
     for mod in Sys-OsRelease Sys-OsPackage
     do
         tarball="$(ls -1 $mod-*.tar.gz | tail -1)"
@@ -54,11 +55,21 @@ cd /work
             && perl Build \
             && perl Build test \
             && perl Build install)
+        cleandirs="$cleandirs $basemod"
     done
 
     # load modules (as OS pacakges if possible) needed for container-tests.pl to run
     bin/fetch-reqs.pl container-tests.pl || exit 1
-} # >/dev/null 2>&1
+}
 
 # run tests now that their dependencies are loaded
-exec "./container-tests.pl";
+./container-tests.pl
+
+# clean up
+for cleandir in $cleandirs bin lib
+do
+    if [ -d "$cleandir" ]
+    then
+        rm -rf "$cleandir"
+    fi
+done
