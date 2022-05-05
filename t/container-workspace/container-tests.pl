@@ -19,18 +19,18 @@ my @modules = qw(CPAN Sys::OsPackage Test::More YAML);
 
 plan tests => 2 * scalar @modules;
 
-my $ospkg = Sys::OsPackage->instance();
+my $ospkg = Sys::OsPackage->instance(quiet => 1);
 my $platform = Sys::OsPackage->platform();
 foreach my $module (@modules) {
     ok($ospkg->module_installed($module), "Sys::OsPackage found $module in Perl path");
-    my $pkgname = $ospkg->module_package($module);
+    my $pkgname = $ospkg->manage_pkg(op => "modpkg", module => $module);
     SKIP: {
         if ($pkgname) {
             my $pkg_found = $ospkg->pkg_installed($pkgname);
             ok($pkg_found, "$module installed as $platform package $pkgname");
         } else {
             SKIP: {
-                skip "$module not available as pacakge on $platform", 1;
+                skip "$module not available as package on $platform", 1;
             }
         }
     }

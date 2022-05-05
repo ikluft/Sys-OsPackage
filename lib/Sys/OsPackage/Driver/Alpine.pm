@@ -51,7 +51,7 @@ sub find
 
     my $querycmd = $ospkg->sysenv("apk");
     my @pkglist = sort map {substr($_,0,index($_," "))}
-        ($ospkg->capture_cmd({list=>1}, $querycmd, qw(list --available --quiet), $args_ref->{pkg}));
+        ($ospkg->capture_cmd({list=>1}, $querycmd, qw(list --quiet), $args_ref->{pkg}));
     return if not scalar @pkglist; # empty list means nothing found
     return $pkglist[-1]; # last of sorted list should be most recent version
 }
