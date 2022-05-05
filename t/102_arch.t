@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 #===============================================================================
-#         FILE: 101_alpine.t
-#  DESCRIPTION: container test with Alpine
+#         FILE: 102_arch.t
+#  DESCRIPTION: container test with Arch
 #       AUTHOR: Ian Kluft (IKLUFT), 
-#      CREATED: 05/03/2022 08:15:00 PM
+#      CREATED: 05/05/2022 13:37:00 PM
 #===============================================================================
 
 # container tests are expensive and only for release candidate tests, or for advanced users who want to run them
@@ -17,4 +17,4 @@ BEGIN {
 # Test Anything Protocol (TAP) output will come from the container
 use strict;
 use warnings;
-exec "perl", "t/testcon.pl", "--alpine";
+exec "perl", "t/testcon.pl", "--arch";
