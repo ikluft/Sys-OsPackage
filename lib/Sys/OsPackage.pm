@@ -375,8 +375,11 @@ sub capture_cmd
             chomp;
             push @output, $_;
         }
-        close $fh
-            or carp "failed to close pipe for command '$cmd': $!";;
+        if(not close $fh) {
+            if (deftrue($args{carp_errors})) {
+                carp "failed to close pipe for command '$cmd': $!";;
+            }
+        }
     }
 
     # detect and handle errors

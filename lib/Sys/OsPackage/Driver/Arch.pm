@@ -50,7 +50,8 @@ sub find
     return if not $class->pkgcmd($ospkg);
 
     my $querycmd = $ospkg->sysenv("pacman");
-    my @pkglist = sort $ospkg->capture_cmd({list=>1}, $querycmd, qw(--sync --search --quiet), $args_ref->{pkg});
+    my @pkglist = sort $ospkg->capture_cmd({list=>1}, $querycmd, qw(--sync --search --quiet),
+        '^'.$args_ref->{pkg}.'$');
     return if not scalar @pkglist; # empty list means nothing found
     return $pkglist[-1]; # last of sorted list should be most recent version
 }
@@ -84,7 +85,7 @@ sub is_installed
 
     # check if package is installed
     my $querycmd = $ospkg->sysenv("pacman");
-    my @pkglist = $ospkg->capture_cmd({list=>1}, $querycmd, qw(--query --search --quiet), $args_ref->{pkg});
+    my @pkglist = $ospkg->capture_cmd({list=>1}, $querycmd, qw(--query --search --quiet), '^'.$args_ref->{pkg}.'$');
     return (scalar @pkglist > 0) ? 1 : 0;
 }
 
