@@ -35,7 +35,7 @@ sub modpkg
     my @querycmd = ((defined $ospkg->sysenv("dnf"))
         ? ($ospkg->sysenv("dnf"), "repoquery")
         : $ospkg->sysenv("repoquery"));
-    my @pkglist = sort $ospkg->capture_cmd({list=>1}, @querycmd, qw(--available --whatprovides),
+    my @pkglist = sort $ospkg->capture_cmd({list=>1}, @querycmd, qw(--available --quiet --whatprovides),
         "'perl(".$args_ref->{module}.")'");
     $ospkg->debug()
         and print STDERR "debug(".__PACKAGE__."->modpkg): ".$args_ref->{module}." -> ".join(" ", @pkglist)."\n";
@@ -52,7 +52,7 @@ sub find
     my @querycmd = ((defined $ospkg->sysenv("dnf"))
         ? ($ospkg->sysenv("dnf"), "repoquery")
         : $ospkg->sysenv("repoquery"));
-    my @pkglist = sort $ospkg->capture_cmd({list=>1}, @querycmd, qw(--available), $args_ref->{pkg});
+    my @pkglist = sort $ospkg->capture_cmd({list=>1}, @querycmd, qw(--quiet --latest-limit=1), $args_ref->{pkg});
     return if not scalar @pkglist; # empty list means nothing found
     return $pkglist[-1]; # last of sorted list should be most recent version
 }
@@ -75,7 +75,7 @@ sub install
 
     # install the packages
     my $pkgcmd = $ospkg->sysenv("dnf") // $ospkg->sysenv("yum");
-    return $ospkg->run_cmd($pkgcmd, "install", "--assumeyes", "--setopt=install_weak_deps=false", @packages);
+    return $ospkg->run_cmd($pkgcmd, q(install --quiet --assumeyes --setopt=install_weak_deps=false), @packages);
 }
 
 # check if an OS package is installed locally

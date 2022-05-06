@@ -1,4 +1,4 @@
-#
+#!/usr/bin/perl
 #===============================================================================
 #         FILE: 002_basic.t
 #  DESCRIPTION: basic/inexpensive tests for Sys::OsPackage 

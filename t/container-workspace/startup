@@ -15,20 +15,20 @@ cd /work
     fi
     if [ $ID = "debian" -o $ID = "ubuntu" ]
     then
-        apt update --yes
-        apt install --yes perl-modules libmodule-build-perl libyaml-perl make tar
+        apt update --yes --quiet
+        apt install --yes --quiet perl-modules libmodule-build-perl libyaml-perl make tar
     elif [ $ID = "fedora" -o $ID = "rocky" -o $ID = "almalinux" ]
     then
-        dnf upgrade --assumeyes
-        dnf --assumeyes install perl perl-Module-Build perl-YAML make tar < /dev/null
+        dnf upgrade --quiet --assumeyes
+        dnf --assumeyes --quiet install perl perl-Module-Build perl-YAML make tar < /dev/null
     elif [ $ID = "alpine" ]
     then
         apk update
         apk add perl perl-module-build perl-yaml make tar < /dev/null
     elif [ $ID = "arch" ]
     then
-        pacman --sync --refresh
-        pacman --sync --needed --noconfirm perl perl-module-build perl-yaml make tar
+        pacman --sync --refresh --quiet
+        pacman --sync --needed --quiet --noconfirm perl perl-module-build perl-yaml make tar
     fi
     if [ -f /etc/profile ]
     then

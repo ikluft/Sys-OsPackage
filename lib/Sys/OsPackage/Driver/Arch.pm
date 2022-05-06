@@ -74,7 +74,7 @@ sub install
 
     # install the packages
     my $pkgcmd = $ospkg->sysenv("pacman");
-    return $ospkg->run_cmd($pkgcmd, "--sync", "--needed", "--noconfirm", @packages);
+    return $ospkg->run_cmd($pkgcmd, qw(--sync --needed --noconfirm --quiet), @packages);
 }
 
 # check if an OS package is installed locally
