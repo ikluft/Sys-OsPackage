@@ -50,8 +50,8 @@ sub find
     my ($class, $ospkg, $args_ref) = @_;
     return if not $class->pkgcmd($ospkg);
 
-    my $querycmd = $ospkg->sysenv("apt");
-    my @pkglist = sort $ospkg->capture_cmd({list=>1}, $querycmd, qw(list --all-versions), $args_ref->{pkg});
+    my $querycmd = $ospkg->sysenv("apt-cache");
+    my @pkglist = sort $ospkg->capture_cmd({list=>1}, $querycmd, qw(search --quiet=2), '^'.$args_ref->{pkg}.'$');
     return if not scalar @pkglist; # empty list means nothing found
     return $pkglist[-1]; # last of sorted list should be most recent version
 }
@@ -85,7 +85,7 @@ sub is_installed
 
     # check if package is installed
     my $querycmd = $ospkg->sysenv("dpkg-query");
-    my @pkglist = $ospkg->capture_cmd({list=>1}, $querycmd, qw(--show), $args_ref->{pkg}); # TODO quiet stderr
+    my @pkglist = $ospkg->capture_cmd({list=>1}, $querycmd, '--show', '--showformat=\${package}\n', $args_ref->{pkg});
     return (scalar @pkglist > 0) ? 1 : 0;
 }
 

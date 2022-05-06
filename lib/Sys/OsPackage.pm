@@ -29,7 +29,8 @@ my %_sysconf = (
     common_id => [qw(centos)],
 
     # command search list & path
-    search_cmds => [qw(uname curl tar cpan cpanm rpm yum repoquery dnf apt dpkg-query apk pacman brew zypper)],
+    search_cmds => [qw(uname curl tar cpan cpanm rpm yum repoquery dnf apt apt-cache dpkg-query apk pacman brew
+        zypper)],
     search_path => [qw(/bin /usr/bin /sbin /usr/sbin /opt/bin /usr/local/bin)],
 );
 
