@@ -75,7 +75,7 @@ sub install
 
     # install the packages
     my $pkgcmd = $ospkg->sysenv("dnf") // $ospkg->sysenv("yum");
-    return $ospkg->run_cmd($pkgcmd, q(install --quiet --assumeyes --setopt=install_weak_deps=false), @packages);
+    return $ospkg->run_cmd($pkgcmd, qw(install --quiet --assumeyes --setopt=install_weak_deps=false), @packages);
 }
 
 # check if an OS package is installed locally
