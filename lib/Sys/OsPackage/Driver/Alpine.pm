@@ -74,7 +74,7 @@ sub install
 
     # install the packages
     my $pkgcmd = $ospkg->sysenv("apk");
-    return $ospkg->run_cmd($pkgcmd, "add", @packages);
+    return $ospkg->run_cmd($pkgcmd, qw(add --quiet), @packages);
 }
 
 # check if an OS package is installed locally

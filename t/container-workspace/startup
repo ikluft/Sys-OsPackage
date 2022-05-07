@@ -4,28 +4,41 @@
 # This is the first thing to run inside the container. It needs to install dependencies for the unit test script.
 cd /work
 
+# distro-specific setup
+if [ -f /etc/os-release ]
+then
+    . /etc/os-release
+fi
+platform=${ID:-$(uname)}
+
+# This is too chatty for most test runs - redirect output to /dev/null unless CONTAINER_TEST_LOG is set
+if [ -z "$CONTAINER_TEST_LOG" ]
+then
+    output="/dev/null"
+    echo "container setup may take minutes - set CONTAINER_TEST_LOG=1 to log output"
+else
+    output="/work/log-$platform-$CONTAINER_TEST_TIMESTAMP"
+    echo "container setup may take minutes - logging output to $output"
+fi
+
 {
-    # distro-specific setup
-    if [ -f /etc/os-release ]
-    then
-        . /etc/os-release
-        echo "system release id: $ID"
-    else
-        echo "/etc/os-release not found"
-    fi
-    if [ $ID = "debian" -o $ID = "ubuntu" ]
+    # redirect stderr to stdout - this follows whether it was directed to a log or /dev/null
+    exec 2>&1
+
+    echo "system platform: $platform"
+    if [ $platform = "debian" -o $platform = "ubuntu" ]
     then
         apt update --yes --quiet
         apt install --yes --quiet perl-modules libmodule-build-perl libyaml-perl make tar
-    elif [ $ID = "fedora" -o $ID = "rocky" -o $ID = "almalinux" ]
+    elif [ $platform = "fedora" -o $platform = "rocky" -o $platform = "almalinux" ]
     then
         dnf upgrade --quiet --assumeyes
         dnf --assumeyes --quiet install perl perl-Module-Build perl-YAML make tar < /dev/null
-    elif [ $ID = "alpine" ]
+    elif [ $platform = "alpine" ]
     then
-        apk update
-        apk add perl perl-module-build perl-yaml make tar < /dev/null
-    elif [ $ID = "arch" ]
+        apk update --quiet
+        apk add --quiet perl perl-module-build perl-yaml make tar < /dev/null
+    elif [ $platform = "arch" ]
     then
         pacman --sync --refresh --quiet
         pacman --sync --needed --quiet --noconfirm perl perl-module-build perl-yaml make tar
@@ -60,7 +73,7 @@ cd /work
 
     # load modules (as OS pacakges if possible) needed for container-tests.pl to run
     bin/fetch-reqs.pl container-tests.pl || exit 1
-}
+} >> ${output:-/dev/null}
 
 # run tests now that their dependencies are loaded
 ./container-tests.pl

@@ -24,6 +24,12 @@ my @copyfiles = (
 # main
 #
 
+# set timestamp for container environment
+my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime;
+$mon++;
+$year += 1900;
+$ENV{CONTAINER_TEST_TIMESTAMP} = sprintf("%04d-%02d-%02d-%02d-%02d-%02d", $year, $mon, $mday, $hour, $min, $sec);
+
 # process command line
 my %args;
 GetOptions(\%args, (@distros, keys %special));
@@ -58,11 +64,11 @@ foreach my $fileglob (@copyfiles) {
 # get a copy of Sys::OsRelease to solve chicken-and-egg problem on startup
 my $orig_cwd = getcwd();
 chdir $workspace;
-system "cpan -g Sys::OsRelease";
+system "cpan -g Sys::OsRelease >/dev/null 2>&1";
 
 # launch container
 my $podman = qx(which podman);
 chomp $podman;
 exec $podman, "run", "--mount=type=bind,source=$orig_cwd/$workspace,destination=/work,readonly=false,relabel=shared",
-    "$image_spec{name}:$image_spec{tag}", "/work/startup"
+    "--env", "CONTAINER_TEST_*", "$image_spec{name}:$image_spec{tag}", "/work/startup"
     or croak "exec failed; $!";
