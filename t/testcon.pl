@@ -66,9 +66,23 @@ my $orig_cwd = getcwd();
 chdir $workspace;
 system "cpan -g Sys::OsRelease >/dev/null 2>&1";
 
+# find container command: Podman or Docker - check Podman first to prefer local containers over Docker's root daemon
+my $container_cmd;
+DIR_LOOP: foreach my $pathdir (split /:/, $ENV{PATH}) {
+    foreach my $cmdname (qw(podman docker)) {
+        if (-x "$pathdir/$cmdname") {
+            $container_cmd = "$pathdir/$cmdname";
+            last DIR_LOOP;
+        }
+    }
+}
+if (not defined $container_cmd) {
+    print qq{1..0 # SKIP container tests - neither podman nor docker found in PATH\n};
+    exit 0;
+}
+
 # launch container
-my $podman = qx(which podman);
-chomp $podman;
-exec $podman, "run", "--mount=type=bind,source=$orig_cwd/$workspace,destination=/work,readonly=false,relabel=shared",
+exec $container_cmd, "run",
+    "--mount=type=bind,source=$orig_cwd/$workspace,destination=/work,readonly=false,relabel=shared",
     "--env", "CONTAINER_TEST_*", "$image_spec{name}:$image_spec{tag}", "/work/startup"
     or croak "exec failed; $!";
