@@ -85,4 +85,5 @@ do
     then
         rm -rf "$cleandir"
     fi
+    rm -f $cleandir.tar.gz
 done
