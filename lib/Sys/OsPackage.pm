@@ -784,13 +784,13 @@ sub is_root
 # returns undef if not implemented
 #   for ops which return a numeric status: 0 = failure, 1 = success
 #   some ops return a value such as query results
-sub manage_pkg
+sub call_pkg_driver
 {
     my ($class_or_obj, %args) = @_;
     my $self = class_or_obj($class_or_obj);
 
     if (not exists $args{op}) {
-        croak "manage_pkg() requires op parameter";
+        croak "call_pkg_driver() requires op parameter";
     }
 
     # check if packager is implemented for currently-running system
@@ -873,12 +873,12 @@ sub module_package
         # must be root to install an OS package
         return 0;
     }
-    if (not $self->manage_pkg(op => "implemented")) {
+    if (not $self->call_pkg_driver(op => "implemented")) {
         return 0;
     }
 
     # handle various package managers
-    my $pkgname = $self->manage_pkg(op => "modpkg", module => $module);
+    my $pkgname = $self->call_pkg_driver(op => "modpkg", module => $module);
     return 0 if (not defined $pkgname) or length($pkgname) == 0;
     if (not $self->quiet()) {
         print "\n";
@@ -886,7 +886,7 @@ sub module_package
             .$self->text_color_reset()."\n";
     }
 
-    return $self->manage_pkg(op => "install", pkg => $pkgname);
+    return $self->call_pkg_driver(op => "install", pkg => $pkgname);
 }
 
 # check if OS package is installed
@@ -896,7 +896,7 @@ sub pkg_installed
     my $self = class_or_obj($class_or_obj);
 
     return 0 if (not defined $pkgname) or length($pkgname) == 0;
-    return $self->manage_pkg(op => "is_installed", pkg => $pkgname);
+    return $self->call_pkg_driver(op => "is_installed", pkg => $pkgname);
 }
 
 # check if module is installed, and install it if not present
@@ -986,7 +986,7 @@ sub establish_cpan
     if ($self->is_root()) {
         # package dependencies for CPAN (i.e. make, or oddly-named OS package that contains CPAN)
         my @deps = $self->cpan_prereqs();
-        $self->manage_pkg(op => "install", pkg => \@deps);
+        $self->call_pkg_driver(op => "install", pkg => \@deps);
 
         # check for commands which were installed by their package name, and specifically look for cpan by any package
         foreach my $dep (@deps, "cpan") {

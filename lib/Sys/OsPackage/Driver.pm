@@ -45,24 +45,24 @@ Sys::OsPackage::Driver - parent class for packaging handler drivers for Sys::OsP
   my $ospkg = Sys::OsPackage->instance();
 
   # check if packaging commands exist for this system
-  if (not $ospkg->manage_pkg(op => "implemented")) {
+  if (not $ospkg->call_pkg_driver(op => "implemented")) {
     return 0;
   }
 
   # find OS package name for Perl module
-  my $pkgname = $ospkg->manage_pkg(op => "find", module => $module);
+  my $pkgname = $ospkg->call_pkg_driver(op => "find", module => $module);
 
   # install a Perl module as an OS package
-  my $result1 = $ospkg->manage_pkg(op => "modpkg", module => $module);
+  my $result1 = $ospkg->call_pkg_driver(op => "modpkg", module => $module);
 
   # install an OS package
-  my $result2 = $ospkg->manage_pkg(op => "install", pkg => $pkgname);
+  my $result2 = $ospkg->call_pkg_driver(op => "install", pkg => $pkgname);
 
 =head1 DESCRIPTION
 
 ⛔ This is for Sys::OsPackage internal use only.
 
-The Sys::OsPackage method manage_pkg() will call the correct driver for the running platform.
+The Sys::OsPackage method call_pkg_driver() will call the correct driver for the running platform.
 
 All the platforms' packaging drivers must use this class as their parent class.
 
