@@ -12,7 +12,8 @@ use File::Copy::Recursive qw(rcopy_glob pathempty);
 
 # test configuration
 my $workspace = "t/container-workspace";
-my @distros = qw(fedora rockylinux almalinux debian ubuntu alpine archlinux);
+my %distro_subst = ("opensuse" => "opensuse/leap");
+my @distros = qw(fedora rockylinux almalinux debian ubuntu alpine archlinux opensuse);
 my %special = (
     #"perl58" => {name => "perl", tag => "5.8.9-slim-buster"},
 );
@@ -36,9 +37,10 @@ GetOptions(\%args, (@distros, keys %special));
 my $total_distros = 0; # count to make sure exactly one was selected
 my %image_spec = (tag => "latest");
 foreach my $key (@distros) {
-    if ($args{$key} // 0) {
+    if ((exists $args{$key}) ? $args{$key} : 0) {
         $total_distros++;
-        $image_spec{name} = $key;
+        my $image_name = (exists $distro_subst{$key}) ? $distro_subst{$key} : $key; 
+        $image_spec{distro} = $image_name;
     }
 }
 foreach my $special (keys %special) {

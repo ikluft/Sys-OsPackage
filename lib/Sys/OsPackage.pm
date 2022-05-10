@@ -25,8 +25,10 @@ BEGIN {
 # system configuration
 my %_sysconf = (
     # additional common IDs to provide to Sys::OsRelease to recognize as common platforms in ID_LIKE attributes
-    # this adds CentOS to recognized common platforms because we use it to recognize Rocky and Alma as needing EPEL
-    common_id => [qw(centos)],
+    # this adds to recognized common platforms:
+    #   RHEL, SuSE, Ubuntu - common commercial platforms
+    #   CentOS - because we use it to recognize Rocky and Alma as needing EPEL
+    common_id => [qw(centos rhel suse ubuntu)],
 
     # command search list & path
     search_cmds => [qw(uname curl tar cpan cpanm rpm yum repoquery dnf apt apt-cache dpkg-query apk pacman brew
@@ -45,6 +47,8 @@ my %_platconf = (
         centos => "Sys::OsPackage::Driver::RPM", # CentOS no longer exists; CentOS derivatives supported via ID_LIKE
         debian => "Sys::OsPackage::Driver::Debian",
         fedora => "Sys::OsPackage::Driver::RPM",
+        opensuse => "Sys::OsPackage::Driver::Suse",
+        rhel => "Sys::OsPackage::Driver::RPM",
         suse => "Sys::OsPackage::Driver::Suse",
         ubuntu => "Sys::OsPackage::Driver::Debian",
     },
@@ -70,6 +74,8 @@ my %_platconf = (
         fedora => [qw(perl-CPAN)],
         centos => [qw(epel-release perl-CPAN)], # CentOS no longer exists, still used for CentOS-derived systems
         debian => [qw(perl-modules)],
+        opensuse => [qw()],
+        suse => [qw()],
         ubuntu => [qw(perl-modules)],
     },
 

@@ -1,6 +1,29 @@
 #!/bin/sh
 # Sys::OsPackage test container startup script
 # Ian Kluft
+
+# shell function to match platform name via ID or ID_LIKE from /etc/os-release or kernel from uname
+function platform
+{
+    match="$1" # string to match
+    if [ "$ID" = "$match" ]
+    then
+        return 0
+    fi
+    for str in $ID_LIKE
+    do
+        if [ "$str" = "$match" ]
+        then
+            return 0
+        fi
+    done
+    if [ "$str" = $(uname -s) ]
+    then
+        return 0
+    fi
+    return 1
+}
+
 # This is the first thing to run inside the container. It needs to install dependencies for the unit test script.
 cd /work
 
@@ -26,22 +49,26 @@ fi
     exec 2>&1
 
     echo "system platform: $platform"
-    if [ $platform = "debian" -o $platform = "ubuntu" ]
+    if platform debian || platform ubuntu
     then
         apt update --yes --quiet
         apt install --yes --quiet perl-modules libmodule-build-perl libyaml-perl make tar
-    elif [ $platform = "fedora" -o $platform = "rocky" -o $platform = "almalinux" ]
+    elif  platform fedora || platform centos || platform rhel
     then
         dnf upgrade --quiet --assumeyes
         dnf --assumeyes --quiet install perl perl-Module-Build perl-YAML make tar < /dev/null
-    elif [ $platform = "alpine" ]
+    elif  platform alpine
     then
         apk update --quiet
         apk add --quiet perl perl-module-build perl-yaml make tar < /dev/null
-    elif [ $platform = "arch" ]
+    elif platform arch
     then
         pacman --sync --refresh --quiet
         pacman --sync --needed --quiet --noconfirm perl perl-module-build perl-yaml make tar
+    elif platform opensuse || platform suse
+    then
+        zypper --non-interactive --terse --quiet update
+        zypper --non-interactive --terse --quiet install perl perl-Module-Build perl-YAML make tar gzip < /dev/null
     fi
     if [ -f /etc/profile ]
     then

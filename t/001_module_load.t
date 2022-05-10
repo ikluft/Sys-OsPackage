@@ -8,10 +8,11 @@ use Test::More;
 my @classes = qw(
     Sys::OsPackage
     Sys::OsPackage::Driver
-    Sys::OsPackage::Driver::RPM
     Sys::OsPackage::Driver::Alpine
-    Sys::OsPackage::Driver::Debian
     Sys::OsPackage::Driver::Arch
+    Sys::OsPackage::Driver::Debian
+    Sys::OsPackage::Driver::RPM
+    Sys::OsPackage::Driver::Suse
 );
 plan tests => scalar @classes;
 

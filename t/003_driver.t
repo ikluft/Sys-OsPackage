@@ -14,7 +14,7 @@ use Sys::OsPackage;
 use Test::More;
 
 # constants
-my @packagers = qw(Alpine Arch Debian RPM);
+my @packagers = qw(Alpine Arch Debian RPM Suse);
 my @required_methods = qw(ping pkgcmd modpkg find install is_installed);
 
 plan tests => (scalar @packagers) * (3 + scalar @required_methods);
