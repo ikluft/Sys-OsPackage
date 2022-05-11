@@ -34,15 +34,15 @@ sub modpkg
     #return join("-", "perl", @{$args_ref->{mod_parts}}); # zypper/rpm format for Perl module packages
     my @querycmd = $ospkg->sysenv("zypper");
     my @pkglist = sort $ospkg->capture_cmd({list=>1}, @querycmd,
-        qw(--non-interactive --quiet --terse --table-style=11 search --provides --match-exact),
+        qw(--non-interactive --quiet --terse search --provides --type=package --match-exact),
         "'perl(".$args_ref->{module}.")'");
     $ospkg->debug()
         and print STDERR "debug(".__PACKAGE__."->modpkg): ".$args_ref->{module}." -> ".join(" ", @pkglist)."\n";
     return if not scalar @pkglist; # empty list means nothing found
     splice @pkglist, 0, 3; # remove table header in 3 leading lines
     my $pkg_found = $pkglist[-1]; # get last entry from table
-    $pkg_found =~ s/^\s+//x;
-    $pkg_found =~ s/\s.*$//x;
+    $pkg_found =~ s/^[^\|]*\|\s*//x; # remove 1st column
+    $pkg_found =~ s/\s*\|.*$//x; # remove 3rd & following columns
     return $pkg_found;
 }
 
@@ -54,13 +54,13 @@ sub find
 
     my @querycmd = $ospkg->sysenv("zypper");
     my @pkglist = sort $ospkg->capture_cmd({list=>1}, @querycmd,
-        qw(--non-interactive --quiet --terse --table-style=11 search --provides --match-exact),
+        qw(--non-interactive --quiet --terse search --provides --type=package --match-exact),
         $args_ref->{pkg});
     return if not scalar @pkglist; # empty list means nothing found
     splice @pkglist, 0, 3; # remove table header in 3 leading lines
     my $pkg_found = $pkglist[-1]; # get last entry from table
-    $pkg_found =~ s/^\s+//x;
-    $pkg_found =~ s/\s.*$//x;
+    $pkg_found =~ s/^[^\|]*\|\s*//x; # remove 1st column
+    $pkg_found =~ s/\s*\|.*$//x; # remove 3rd & following columns
     return $pkg_found;
 }
 

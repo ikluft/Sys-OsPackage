@@ -15,8 +15,10 @@ use utf8;
 
 package Sys::OsPackage;
 
+use Config;
 use Carp qw(carp croak confess);
 use Sys::OsRelease;
+use autodie;
 BEGIN {
     # import methods from Sys::OsRelease to manage singleton instance
     Sys::OsRelease->import_singleton();
@@ -517,7 +519,8 @@ sub user_perldir_create
         foreach my $need_dir ($self->sysenv("home"), ".local", "perl", "lib", "perl5") {
             $need_path = (defined $need_path) ? "$need_path/$need_dir" : $need_dir;
             if (not -d $need_path) {
-                mkdir $need_path, 755
+                no autodie;
+                mkdir $need_path, 0755
                     or croak "failed to create $need_path: $!";
             }
         }
@@ -709,6 +712,7 @@ sub collect_sysenv
             $sysenv->{$cmd} = $filepath;
         }
     }
+    $sysenv->{perl} = $Config{perlpath};
 
     # collect info and deduce platform type
     $self->resolve_platform();
@@ -950,7 +954,8 @@ sub bootstrap_cpanm
 
     # make build directory and change into it
     if (not -d "build") {
-        mkdir "build"
+        no autodie;
+        mkdir "build", 0755
             or croak "can't make build directory in current directory: $!";
     }
     chdir "build";
@@ -972,9 +977,15 @@ sub bootstrap_cpanm
         $perl_sources->{"App::cpanminus"}
     )
         or croak "download failed for App::cpanminus";
-    my $cpanm_path = (grep {qr(/bin/cpanm$)x} ($self->capture_cmd({list=>1}, $self->sysenv("tar"),
-        qw(-tf app-cpanminus.tar.gz))));
-    run_cmd($self->sysenv("tar"), "-xf", "app-cpanminus.tar.gz", $cpanm_path);
+    my @cpanm_path = grep {qr(/bin/cpanm$)x} ($self->capture_cmd({list=>1}, $self->sysenv("tar"),
+        qw(-tf app-cpanminus.tar.gz)));
+    my $cpanm_path = pop @cpanm_path;
+    $self->run_cmd($self->sysenv("tar"), "-xf", "app-cpanminus.tar.gz", $cpanm_path);
+    {
+        no autodie;
+        chmod 0755, $cpanm_path
+            or croak "failed to chmod $cpanm_path:$!";
+    }
     $self->sysenv("cpanm", $self->pwd()."/".$cpanm_path);
 
     # change back up to previous directory
@@ -1028,7 +1039,7 @@ sub establish_cpan
 
         # try again with cpanminus if it wasn't installed by a package
         if (not defined $self->sysenv("cpan")) {
-            if ($self->run_cmd($self->sysenv("cpanm"), "CPAN")) {
+            if ($self->run_cmd($self->sysenv("perl"), $self->sysenv("cpanm"), "CPAN")) {
                 $self->sysenv("cpan", $self->cmd_path("cpan"));
             }
         }
