@@ -80,12 +80,6 @@ my %_platconf = (
         suse => [qw()],
         ubuntu => [qw(perl-modules)],
     },
-
-    # augment command search path on some systems
-    # entries may be scalar or array
-    cmd_path => {
-        arch => [qw(/usr/bin/core_perl /usr/bin/vendor_perl /usr/bin/site_perl)],
-    },
 );
 
 # Perl-related configuration (read only)
@@ -275,20 +269,6 @@ sub packager
     return $self->sysenv("packager"); # undef intentionally returned if it doesn't exist
 }
 
-# find if a platform has specific command search paths needed to run Perl scripts
-sub plat_cmd_path
-{
-    my ($class_or_obj) = @_;
-    my $self = class_or_obj($class_or_obj);
-
-    my $plat_cmd_path = $self->platconf("cmd_path");
-    return () if not defined $plat_cmd_path;
-    if (ref $plat_cmd_path eq "ARRAY") {
-        return @{$plat_cmd_path};
-    }
-    return $plat_cmd_path;
-}
-
 # look up known exceptions for the platform's package naming pattern
 sub pkg_override
 {
@@ -430,7 +410,7 @@ sub cmd_path
         $self->sysenv("path_list", [split /:/x, $ENV{PATH}]);
         $self->sysenv("path_flag", {map { ($_ => 1) } @{$self->sysenv("path_list")}});
         my $path_flag = $self->sysenv("path_flag");
-        foreach my $dir (@{sysconf("search_path")}, $self->plat_cmd_path()) {
+        foreach my $dir (@{sysconf("search_path")}) {
             -d $dir or next;
             if (not exists $path_flag->{$dir}) {
                 push @{$self->sysenv("path_list")}, $dir;
