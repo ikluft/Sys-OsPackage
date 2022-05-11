@@ -15,7 +15,7 @@ my $workspace = "t/container-workspace";
 my %distro_subst = ("opensuse" => "opensuse/leap");
 my @distros = qw(fedora rockylinux almalinux debian ubuntu alpine archlinux opensuse);
 my %special = (
-    #"perl58" => {name => "perl", tag => "5.8.9-slim-buster"},
+    #"perl58" => {image => "perl", tag => "5.8.9-slim-buster"},
 );
 my @copyfiles = (
     qw(lib bin),
@@ -40,7 +40,7 @@ foreach my $key (@distros) {
     if ((exists $args{$key}) ? $args{$key} : 0) {
         $total_distros++;
         my $image_name = (exists $distro_subst{$key}) ? $distro_subst{$key} : $key; 
-        $image_spec{distro} = $image_name;
+        $image_spec{image} = $image_name;
     }
 }
 foreach my $special (keys %special) {
@@ -86,5 +86,5 @@ if (not defined $container_cmd) {
 # launch container
 exec $container_cmd, "run",
     "--mount=type=bind,source=$orig_cwd/$workspace,destination=/work,readonly=false,relabel=shared",
-    "--env", "CONTAINER_TEST_*", "$image_spec{name}:$image_spec{tag}", "/work/startup"
+    "--env", "CONTAINER_TEST_*", "$image_spec{image}:$image_spec{tag}", "/work/startup"
     or croak "exec failed; $!";
