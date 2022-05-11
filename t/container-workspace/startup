@@ -3,7 +3,7 @@
 # Ian Kluft
 
 # shell function to match platform name via ID or ID_LIKE from /etc/os-release or kernel from uname
-function platform
+platform()
 {
     match="$1" # string to match
     if [ "$ID" = "$match" ]
@@ -44,10 +44,7 @@ else
     echo "container setup may take minutes - logging output to $output"
 fi
 
-{
-    # redirect stderr to stdout - this follows whether it was directed to a log or /dev/null
-    exec 2>&1
-
+(
     echo "system platform: $platform"
     if platform debian || platform ubuntu
     then
@@ -67,42 +64,46 @@ fi
         pacman --sync --needed --quiet --noconfirm perl perl-module-build perl-yaml make tar
     elif platform opensuse || platform suse
     then
-        zypper --non-interactive --terse --quiet update
-        zypper --non-interactive --terse --quiet install perl perl-Module-Build perl-YAML make tar gzip < /dev/null
+        zypper --non-interactive --quiet update
+        zypper --non-interactive --quiet install perl perl-Module-Build perl-YAML make tar gzip < /dev/null
     fi
     if [ -f /etc/profile ]
     then
         . /etc/profile
     fi
+) >>$output 2>&1
 
-    # adjust PERL5LIB
-    perl5dirs=$([ -d /usr/share/perl5 ] && echo /usr/share/perl5; [ -d /usr/share/perl ] && echo /usr/share/perl/*)
-    if [ -n "$perl5dirs" ]
-    then
-        export PERL5LIB=$(perl -e 'print join(":", qw(/work/lib), @INC, qw('"$perl5dirs"'))."\n";')
-    fi
+# adjust PERL5LIB
+perl5dirs=$([ -d /usr/share/perl5 ] && echo /usr/share/perl5; [ -d /usr/share/perl ] && echo /usr/share/perl/*)
+export PERL5LIB=$(perl -e 'print join(":", qw(/work/lib), @INC, qw('"$perl5dirs"'))."\n";')
 
-    # unpack Sys::OsRelease tarball
-    cleandirs=""
-    for mod in Sys-OsRelease Sys-OsPackage
-    do
-        tarball="$(ls -1 $mod-*.tar.gz | tail -1)"
-        [ -f "$tarball" ] || continue;
-        basemod="$(basename $tarball .tar.gz)"
-        (tar -xf $tarball \
+# unpack Sys::OsRelease tarball
+cleandirs=""
+for mod in Sys-OsRelease Sys-OsPackage
+do
+    tarball="$(ls -1 $mod-*.tar.gz 2>>$output | tail -1)"
+    [ -f "$tarball" ] || continue;
+    basemod="$(basename $tarball .tar.gz)"
+    (
+        [ -d $basemod ] && rm -rf $basemod
+        tar -xf $tarball \
             && cd $basemod \
             && perl Build.PL \
             && perl Build \
             && perl Build test \
-            && perl Build install)
-        cleandirs="$cleandirs $basemod"
-    done
+            && perl Build install
+    ) >>$output 2>&1
+    cleandirs="$cleandirs $basemod"
+done
 
-    # load modules (as OS pacakges if possible) needed for container-tests.pl to run
-    bin/fetch-reqs.pl container-tests.pl || exit 1
-} >> ${output:-/dev/null}
+# load modules (as OS pacakges if possible) needed for container-tests.pl to run
+bin/fetch-reqs.pl container-tests.pl >>$output 2>&1 || exit 1
 
 # run tests now that their dependencies are loaded
+if [ -n "$CONTAINER_TEST_DEBUG" ]
+then
+    export SYS_OSPACKAGE_DEBUG=1
+fi
 ./container-tests.pl
 
 # clean up
@@ -113,4 +114,4 @@ do
         rm -rf "$cleandir"
     fi
     rm -f $cleandir.tar.gz
-done
+done >>$output 2>&1
