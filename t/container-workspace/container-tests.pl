@@ -22,7 +22,7 @@ plan tests => 2 * scalar @modules;
 my $ospkg = Sys::OsPackage->instance(quiet => 1);
 my $platform = Sys::OsPackage->platform();
 foreach my $module (@modules) {
-    ok($ospkg->module_installed($module), "Sys::OsPackage found $module in Perl path");
+    ok($ospkg->module_installed($module), "found $module in Perl path");
     my $pkgname = $ospkg->call_pkg_driver(op => "modpkg", module => $module);
     SKIP: {
         if ($pkgname) {
