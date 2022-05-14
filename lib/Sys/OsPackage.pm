@@ -1073,6 +1073,8 @@ Other packaging systems for Unix-like operating systems should be feasible to ad
 
 =head1 SEE ALSO
 
+L<Sys::OsPackage::Driver>
+
 "pacman/Rosetta" at Arch Linux Wiki compares commands of 5 Linux packaging systems L<https://wiki.archlinux.org/title/Pacman/Rosetta>
 
 GitHub repository for Sys::OsPackage: L<https://github.com/ikluft/Sys-OsPackage>
