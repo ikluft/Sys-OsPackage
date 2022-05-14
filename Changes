@@ -12,10 +12,11 @@ Change log for Sys::OsRelease
  [MAJOR]
 
  [MINOR]
- refactored into a module from personal scripts repository
 
  [REVISION]
 
  [SECURITY]
 
-
+0.1.0 2022-05-14T00:07:10-07:00 America/Los_Angeles
+ [MINOR]
+ - refactored into a module from personal scripts repository
