@@ -73,13 +73,19 @@ fetch-reqs.pl - install prerequisite modules for a Perl script with minimal prer
 
   fetch-reqs.pl filename [...]
 
-=head1 USAGE
-
 =head1 OPTIONS
+
+The files listed on the command line should all be Perl scripts or modules to scan for dependencies.
+Each file's Perl module dependencies will be installed by L<Sys::OsPackage> by operating system packages
+if available, or otherwise via CPAN.
 
 =head1 EXIT STATUS
 
+Program exit codes are 0 if no error, 1 if error.
+
 =head1 SEE ALSO
+
+L<Sys::OsPackage>
 
 GitHub repository for Sys::OsPackage: L<https://github.com/ikluft/Sys-OsPackage>
 
