@@ -10,7 +10,6 @@ use strict;
 use warnings;
 use utf8;
 use autodie;
-use feature qw(say);
 use Carp qw(carp croak);
 use Data::Dumper;
 use Sys::OsPackage;
@@ -29,21 +28,21 @@ sub process
         # $filename is a path so keep it that way, and extract basename
         $basename = substr($filename, rindex($filename, '/')+1);
     }
-    $ospackage->debug() and say STDERR "debug(process): filename=$filename basename=$basename";
+    $ospackage->debug() and print STDERR "debug(process): filename=$filename basename=$basename\n";
 
     # scan for dependencies
     require Perl::PrereqScanner::NotQuiteLite;
     my $scanner = Perl::PrereqScanner::NotQuiteLite->new();
     my $deps_ref = $scanner->scan_file($filename);
-    $ospackage->debug() and say STDERR "debug: deps_ref = ".Dumper($deps_ref);
+    $ospackage->debug() and print STDERR "debug: deps_ref = ".Dumper($deps_ref)."\n";
 
     # load Perl modules for dependencies
     my $deps = $deps_ref->requires();
-    $ospackage->debug() and say STDERR "deps = ".Dumper($deps);
+    $ospackage->debug() and print STDERR "deps = ".Dumper($deps)."\n";
     foreach my $module (sort keys %{$deps->{requirements}}) {
-        next if $ospackage->pkg_skip($module);
-        $ospackage->debug() and say STDERR "check_module($module)";
-        $ospackage->check_module($module);
+        next if $ospackage->mod_is_pragma($module);
+        $ospackage->debug() and print STDERR "install_module($module)\n";
+        $ospackage->install_module($module);
     }
     return;
 }

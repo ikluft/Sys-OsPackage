@@ -232,7 +232,7 @@ sub debug
 # read-only accessor for quiet flag
 sub quiet
 {
-    my ($class_or_obj, $value) = @_;
+    my ($class_or_obj) = @_;
     my $self = class_or_obj($class_or_obj);
 
     return deftrue($self->{_config}{quiet});
@@ -281,7 +281,7 @@ sub pkg_override
 }
 
 # check if a package name is actually a pragma and may as well be skipped because it's built in to Perl
-sub pkg_skip
+sub mod_is_pragma
 {
     my ($class_or_obj, $module) = @_;
     my $self = class_or_obj($class_or_obj);
@@ -890,7 +890,7 @@ sub pkg_installed
 }
 
 # check if module is installed, and install it if not present
-sub check_module
+sub install_module
 {
     my ($class_or_obj, $name) = @_;
     my $self = class_or_obj($class_or_obj);
@@ -1027,7 +1027,7 @@ sub establish_cpan
 
     # install dependencies for this tool
     foreach my $dep (@{perlconf("module_deps")}) {
-        $self->check_module($dep);
+        $self->install_module($dep);
     }
     return;
 }
@@ -1045,11 +1045,35 @@ Sys::OsPackage - install OS packages and determine if CPAN modules are packaged 
 
 =head1 SYNOPSIS
 
+  use Sys::OsPackage;
+  my $ospackage = Sys::OsPackage->instance();
+  foreach my $module ( qw(module-name ...)) {
+    $ospackage->install_module($module);
+  }
 
 =head1 DESCRIPTION
 
+I<Sys::OsPackage> is used for installing Perl module dependencies.
+It can look up whether a Perl module is available under some operating systems' packages.
+If the module is available as an OS package, it installs it via the packaging system of the OS.
+Otherwise it runs CPAN to install the module.
+
+The use cases of I<Sys::OsPackage> include setting up systems or containers with Perl modules using OS packages
+as often as possible. It can also be used fvor installing dependencies for a Perl script on an existing system.
+
+OS packaging systems currently supported by I<Sys::OsPackage> are the Linux distributions Alpine, Arch, Debian,
+Fedora and OpenSuse.
+Using L<Sys::OsRelease> it's able to detect operating systems derived from a supported platform use the correct driver.
+
+RHEL and CentOS are supported by the Fedora driver.
+CentOS-derived systems Rocky and Alma are supported by recognizing them as derivatives.
+Ubuntu is supported by the Debian driver.
+
+Other packaging systems for Unix-like operating systems should be feasible to add by writing a driver module.
 
 =head1 SEE ALSO
+
+"pacman/Rosetta" at Arch Linux Wiki compares commands of 5 Linux packaging systems L<https://wiki.archlinux.org/title/Pacman/Rosetta>
 
 GitHub repository for Sys::OsPackage: L<https://github.com/ikluft/Sys-OsPackage>
 
