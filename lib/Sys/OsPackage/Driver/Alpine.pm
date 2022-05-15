@@ -128,6 +128,8 @@ The driver implements these methods: I<pkgcmd>, I<modpkg>, I<find>, I<install>, 
 
 =head1 SEE ALSO
 
+Alpine Linux docs: "Working with the Alpine Package Keeper (apk)" L<https://docs.alpinelinux.org/user-handbook/0.1a/Working/apk.html>
+
 GitHub repository for Sys::OsPackage: L<https://github.com/ikluft/Sys-OsPackage>
 
 =head1 BUGS AND LIMITATIONS

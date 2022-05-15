@@ -129,6 +129,8 @@ The driver implements these methods: I<pkgcmd>, I<modpkg>, I<find>, I<install>, 
 
 =head1 SEE ALSO
 
+Fedora Linux docs: Package management system L<https://docs.fedoraproject.org/en-US/quick-docs/package-management/>
+
 GitHub repository for Sys::OsPackage: L<https://github.com/ikluft/Sys-OsPackage>
 
 =head1 BUGS AND LIMITATIONS

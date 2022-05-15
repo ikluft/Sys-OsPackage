@@ -6,6 +6,7 @@ Change log for Sys::OsRelease
  [BUG FIXES]
 
  [DOCS]
+ - add see-also links to docs on packaging systems in each of the driver modules
 
  [ENHANCEMENTS]
 

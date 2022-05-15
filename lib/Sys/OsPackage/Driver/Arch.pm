@@ -128,6 +128,8 @@ The driver implements these methods: I<pkgcmd>, I<modpkg>, I<find>, I<install>, 
 
 =head1 SEE ALSO
 
+Arch Linux docs: pacman L<https://wiki.archlinux.org/title/Pacman>
+
 GitHub repository for Sys::OsPackage: L<https://github.com/ikluft/Sys-OsPackage>
 
 =head1 BUGS AND LIMITATIONS

@@ -68,6 +68,8 @@ All the platforms' packaging drivers must use this class as their parent class.
 
 =head1 SEE ALSO
 
+"pacman/Rosetta" at Arch Linux Wiki compares commands of 5 Linux packaging systems L<https://wiki.archlinux.org/title/Pacman/Rosetta>
+
 GitHub repository for Sys::OsPackage: L<https://github.com/ikluft/Sys-OsPackage>
 
 =head1 BUGS AND LIMITATIONS

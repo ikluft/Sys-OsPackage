@@ -129,6 +129,8 @@ The driver implements these methods: I<pkgcmd>, I<modpkg>, I<find>, I<install> a
 
 =head1 SEE ALSO
 
+Debian Linux docs: Debian package management system L<https://www.debian.org/doc/manuals/debian-faq/pkg-basics.en.html>
+
 GitHub repository for Sys::OsPackage: L<https://github.com/ikluft/Sys-OsPackage>
 
 =head1 BUGS AND LIMITATIONS

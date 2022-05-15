@@ -136,6 +136,8 @@ The driver implements these methods: I<pkgcmd>, I<modpkg>, I<find>, I<install>, 
 
 =head1 SEE ALSO
 
+OpenSuSE Linux docs: Portal:Zypper L<https://en.opensuse.org/Portal:Zypper>
+
 GitHub repository for Sys::OsPackage: L<https://github.com/ikluft/Sys-OsPackage>
 
 =head1 BUGS AND LIMITATIONS
