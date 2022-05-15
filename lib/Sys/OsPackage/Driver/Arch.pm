@@ -96,10 +96,6 @@ __END__
 # POD documentation
 =encoding utf8
 
-=head1 NAME
-
-Sys::OsPackage::Driver::Arch - Arch Pacman packaging handler for Sys::OsPackage
-
 =head1 SYNOPSIS
 
   my $ospkg = Sys::OsPackage->instance();

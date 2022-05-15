@@ -104,10 +104,6 @@ __END__
 # POD documentation
 =encoding utf8
 
-=head1 NAME
-
-Sys::OsPackage::Driver::Suse - SUSE/OpenSUSE Zypper packaging handler for Sys::OsPackage
-
 =head1 SYNOPSIS
 
   my $ospkg = Sys::OsPackage->instance();

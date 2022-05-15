@@ -1039,10 +1039,6 @@ __END__
 # POD documentation
 =encoding utf8
 
-=head1 NAME
-
-Sys::OsPackage - install OS packages and determine if CPAN modules are packaged for the OS
-
 =head1 SYNOPSIS
 
   use Sys::OsPackage;
