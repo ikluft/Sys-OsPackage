@@ -641,12 +641,16 @@ sub resolve_platform
 
     # collect uname info
     my $uname = $self->sysenv("uname");
-    if (not defined $uname) {
-        croak "error: can't find uname command to collect system information";
+    if (defined $uname) {
+        # Unix-like systems all have uname
+        $self->sysenv("os", $self->capture_cmd($uname, "-s"));
+        $self->sysenv("kernel", $self->capture_cmd($uname, "-r"));
+        $self->sysenv("machine", $self->capture_cmd($uname, "-m"));
+    } else {
+        # if the platform doesn't have uname (mainly Windows), get what we can from the Perl configuration
+        $self->sysenv("os", $Config{osname});
+        $self->sysenv("machine", $Config{archname});
     }
-    $self->sysenv("os", $self->capture_cmd($uname, "-s"));
-    $self->sysenv("kernel", $self->capture_cmd($uname, "-r"));
-    $self->sysenv("machine", $self->capture_cmd($uname, "-m"));
 
     # initialize Sys::OsRelease and set platform type
     my $osrelease = Sys::OsRelease->instance(common_id => sysconf("common_id"));
