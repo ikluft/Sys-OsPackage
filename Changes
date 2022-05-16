@@ -14,9 +14,13 @@ Change log for Sys::OsRelease
  [MINOR]
 
  [REVISION]
- - remove // operator incompatibile with Perl <5.10 in Sys::OsPackage::Driver::RPM (from CPAN Testers feedback)
 
  [SECURITY]
+
+0.1.3 2022-05-15T21:58:39-07:00 America/Los_Angeles
+ [REVISION]
+ - remove // operator incompatibile with Perl <5.10 in
+   Sys::OsPackage::Driver::RPM (from CPAN Testers feedback)
 
 0.1.2 2022-05-15T01:08:10-07:00 America/Los_Angeles
  [DOCS]
