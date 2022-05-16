@@ -74,7 +74,7 @@ sub install
     }
 
     # install the packages
-    my $pkgcmd = $ospkg->sysenv("dnf") // $ospkg->sysenv("yum");
+    my $pkgcmd = (defined $ospkg->sysenv("dnf")) ? $ospkg->sysenv("dnf") : $ospkg->sysenv("yum");
     return $ospkg->run_cmd($pkgcmd, qw(install --quiet --assumeyes --setopt=install_weak_deps=false), @packages);
 }
 
