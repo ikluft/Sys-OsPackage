@@ -79,6 +79,10 @@ The files listed on the command line should all be Perl scripts or modules to sc
 Each file's Perl module dependencies will be installed by L<Sys::OsPackage> by operating system packages
 if available, or otherwise via CPAN.
 
+L<Sys::OsPackage> currently contains OS packaging drivers for Fedora/RHEL/CentOS, Debian/Ubuntu, SuSE/OpenSuSE, Arch
+and Alpine Linux and their derivatives.
+More drivers can be added by creating new subclasses of L<Sys::OsPackage::Driver>.
+
 =head1 EXIT STATUS
 
 Program exit codes are 0 if no error, 1 if error.
