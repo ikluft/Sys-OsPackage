@@ -84,6 +84,3 @@ $( = $user_id;
 $< = $user_id;
 $> = $user_id;
 run_tests();
-#my $su_bin = $ospkg->cmd_path("su");
-#exec $su_bin, "-c", $0, "-", $user_id
-# or croak "exec failed; $!";
