@@ -4,6 +4,8 @@ Change log for Sys::OsRelease
  [API CHANGE]
 
  [BUG FIXES]
+ - remove residual code that tried to symlink non-root user's perl lib directory onto itself if we had to create it
+ - expand containerized release tests to also run tests as non-root user
 
  [DOCS]
 
