@@ -497,22 +497,29 @@ sub build_path
         if (not -d $need_path) {
             no autodie;
             mkdir $need_path, 0755
-                or croak "failed to create $need_path: $!";
+                or return 0; # give up if we can't create the directory
         }
     }
-    return;
+    return 1;
 }
 
-# if the user's local perl library doesn't exist, create it
+# if the user's local perl library doesn't exist, see if we can create it
 sub user_perldir_create
 {
     my ($class_or_obj) = @_;
     my $self = class_or_obj($class_or_obj);
 
+    # bail out on Win32 because XDG directory standard only applies to Unix-like systems
+    if ($self->sysenv("os") eq "MSWin32" or $self->sysenv("os") eq "Win32") {
+        return 0;
+    }
+
+    # try to create an XDG-compatible perl library directory under .local
     if (not defined $self->sysenv("perlbase")) {
         # use a default that complies with XDG directory structure
-        build_path($self->sysenv("home"), ".local", "perl");
-        $self->sysenv("perlbase", $self->sysenv("home")."/.local/perl");
+        if (build_path($self->sysenv("home"), ".local", "perl")) {
+            $self->sysenv("perlbase", $self->sysenv("home")."/.local/perl");
+        }
     }
     build_path($self->sysenv("perlbase"), "lib", "perl5");
     return;

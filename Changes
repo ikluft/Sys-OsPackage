@@ -4,6 +4,7 @@ Change log for Sys::OsRelease
  [API CHANGE]
 
  [BUG FIXES]
+ - fix Win32 failure when perlbase cannot be set: ignore it and let CPAN handle it (from CPAN Testers feedback)
 
  [DOCS]
 

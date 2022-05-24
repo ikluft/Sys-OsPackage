@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use Sys::OsPackage;
 use Test::More;
+use Config;
 
 # test data
 my @sysconf_keys = qw(common_id search_cmds search_path);
@@ -78,9 +79,12 @@ $ospkg->sysenv("packager", $test_str);
 is($ospkg->sysenv("packager"), $test_str, "sysenv(packager) returns same value written to it");
 is($ospkg->packager(), $test_str, "ref->packager() returns same value as sysenv(packager)");
 is(Sys::OsPackage->packager(), $test_str, "class->packager() returns same value as sysenv(packager)");
-ok(defined $ospkg->sysenv("perlbase"), "sysenv(perlbase) is defined");
-ok(-d $ospkg->sysenv("perlbase"), "sysenv(perlbase) points to an existing directory");
-ok(-d $ospkg->sysenv("perlbase")."/lib/perl5", "sysenv(perlbase)/lib/perl5 is an existing directory");
+SKIP: {
+    skip "perlbase not defined on Win32", 3 if $Config{osname} eq "MSWin32";
+    ok(defined $ospkg->sysenv("perlbase"), "sysenv(perlbase) is defined");
+    ok(-d $ospkg->sysenv("perlbase"), "sysenv(perlbase) points to an existing directory");
+    ok(-d $ospkg->sysenv("perlbase")."/lib/perl5", "sysenv(perlbase)/lib/perl5 is an existing directory");
+}
 
 # platform configuration (n tests)
 ok((defined Sys::OsPackage->platconf("__notfound__")) ? 0 : 1, "platconf(__notfound__) not found as expected");
