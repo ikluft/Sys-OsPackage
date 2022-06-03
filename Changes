@@ -14,6 +14,9 @@ Change log for Sys::OsRelease
  [MINOR]
 
  [REVISION]
+ * back off testing requirement for all platforms to find a perlbase path; skip related tests if not defined
+ * re-run 002_basic.t tests under pre-release container tests as root & non-root users; +679 test cases
+ * add pre-release container tests for Kali Linux; +152 test cases
 
  [SECURITY]
 
