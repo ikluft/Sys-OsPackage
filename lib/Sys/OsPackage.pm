@@ -779,7 +779,7 @@ sub is_root
     my ($class_or_obj) = @_;
     my $self = class_or_obj($class_or_obj);
 
-    return ($self->sysenv("root") != 0);
+    return (defined $self->sysenv("root")) ? ($self->sysenv("root") != 0) : 0;
 }
 
 # handle various systems' packagers
