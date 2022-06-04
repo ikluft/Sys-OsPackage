@@ -1,5 +1,5 @@
 # Sys::OsPackage::Driver::Debian
-# ABSTRACT: Debian.Ubuntu DEB packaging handler for Sys::OsPackage
+# ABSTRACT: Debian/Ubuntu DEB packaging handler for Sys::OsPackage
 # Copyright (c) 2022 by Ian Kluft
 # Open Source license Perl's Artistic License 2.0: <http://www.perlfoundation.org/artistic_license_2_0>
 # SPDX-License-Identifier: Artistic-2.0
