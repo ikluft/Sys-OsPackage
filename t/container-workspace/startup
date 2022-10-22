@@ -17,7 +17,7 @@ platform()
             return 0
         fi
     done
-    if [ "$str" = $(uname -s) ]
+    if [ "$str" = "$(uname -s)" ]
     then
         return 0
     fi
@@ -64,7 +64,8 @@ fi
         pacman --sync --needed --quiet --noconfirm perl perl-module-build perl-yaml make tar
     elif platform opensuse || platform suse
     then
-        zypper --non-interactive --quiet update
+        zypper --non-interactive --quiet refresh --force-build
+        zypper --non-interactive --quiet update --best-effort
         zypper --non-interactive --quiet install perl perl-Module-Build perl-YAML make tar gzip < /dev/null
     fi
 ) >>$output 2>&1

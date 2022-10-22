@@ -40,4 +40,5 @@ inc/
 .*.swp
 
 # test container workspace
-t/container-workspace/
+t/container-workspace/log-*
+t/container-workspace/*.tar.gz

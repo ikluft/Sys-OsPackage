@@ -13,7 +13,7 @@ use File::Copy::Recursive qw(rcopy_glob pathempty);
 # test configuration
 my $workspace = "t/container-workspace";
 my %distro_subst = (
-    "opensuse" => "opensuse/leap",
+    "opensuse" => "opensuse/tumbleweed",
     "kalilinux" => "kalilinux/kali-last-release"
 );
 my @distros = qw(fedora rockylinux almalinux debian ubuntu alpine archlinux opensuse kalilinux);
