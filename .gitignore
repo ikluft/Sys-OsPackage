@@ -38,3 +38,6 @@ inc/
 
 # vim/gvim swap files
 .*.swp
+
+# test container workspace
+t/container-workspace/
