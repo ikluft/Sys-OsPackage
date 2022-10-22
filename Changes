@@ -14,9 +14,18 @@ Change log for Sys::OsRelease
  [MINOR]
 
  [REVISION]
- - fix warning of undefined value if sysenv(root) wasn't defined
 
  [SECURITY]
+
+0.1.7 2022-10-21T22:37:28-07:00 America/Los_Angeles
+ [BUG FIXES]
+ - switch OpenSuSE container tests from leap to tumbleweed due to broken
+   GPG packaging key
+
+ [REVISION]
+ - fetch-reqs.pl accepts module names to install as either an OS package or
+   CPAN module
+ - fix warning of undefined value if sysenv(root) wasn't defined
 
 0.1.6 2022-06-02T18:27:13-07:00 America/Los_Angeles
  [REVISION]
@@ -46,8 +55,7 @@ Change log for Sys::OsRelease
  [DOCS]
  - remove NAME section from source POD. I didn't notice until now that
    Pod::Weaver was adding a duplicate.
-
-[REVISION]
+ - [REVISION]
  - fix Windows failure due to lack of a uname command (from CPAN Testers
    feedback)
  - Sys:OsRelease 0.2.3 dependency avoids 0.2.2 glitch where experiment with
