@@ -912,6 +912,7 @@ sub install_module
 {
     my ($class_or_obj, $name) = @_;
     my $self = class_or_obj($class_or_obj);
+    $self->debug() and print STDERR "debug: install_module($name)\n";
 
     # check if module is installed
     if (not $self->module_installed($name)) {

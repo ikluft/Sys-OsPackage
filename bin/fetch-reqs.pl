@@ -16,10 +16,11 @@ use Sys::OsPackage;
 
 sub process
 {
-    my $filename = shift;
+    my $target = shift;
     my $ospackage = Sys::OsPackage->instance();
 
     my $basename;
+    my $filename = $target;
     if (index($filename, '/') == -1) {
         # no directory provided so use pwd
         $basename = $filename;
@@ -29,6 +30,12 @@ sub process
         $basename = substr($filename, rindex($filename, '/')+1);
     }
     $ospackage->debug() and print STDERR "debug(process): filename=$filename basename=$basename\n";
+
+    # if the target doesn't specify an existing file, try to install it as a module name
+    if ( not -e $filename ) {
+        $ospackage->install_module($target);
+        return;
+    }
 
     # scan for dependencies
     require Perl::PrereqScanner::NotQuiteLite;
