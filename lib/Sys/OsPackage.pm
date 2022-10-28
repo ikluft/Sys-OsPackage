@@ -238,6 +238,15 @@ sub quiet
     return deftrue($self->{_config}{quiet});
 }
 
+# read-only accessor for notest flag
+sub notest
+{
+    my ($class_or_obj) = @_;
+    my $self = class_or_obj($class_or_obj);
+
+    return deftrue($self->{_config}{notest});
+}
+
 # read/write accessor for system environment data
 # sysenv is the data collected about the system and commands
 sub sysenv
@@ -933,8 +942,15 @@ sub install_module
 
         # try again with CPAN or CPANMinus if it wasn't installed by a package
         if (not $done) {
-            my $cmd = (defined $self->sysenv("cpan") ? $self->sysenv("cpan") : $self->sysenv("cpanm"));
-            $self->run_cmd($cmd, $name)
+            my ($cmd, @test_param);
+            if (defined $self->sysenv("cpan")) {
+                $cmd = $self->sysenv("cpan");
+                $self->notest() and push @test_param, "-T";
+            } else {
+                $cmd = $self->sysenv("cpanm");
+                $self->notest() and push @test_param, "--notest";
+            }
+            $self->run_cmd($cmd, @test_param, $name)
                 or croak "failed to install $name module";
             $self->module_installed($name, 1);
         }

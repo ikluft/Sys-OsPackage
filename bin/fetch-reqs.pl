@@ -11,9 +11,32 @@ use warnings;
 use utf8;
 use autodie;
 use Carp qw(carp croak);
+use Getopt::Long;
 use Data::Dumper;
 use Sys::OsPackage;
 
+# collect CLI parameters with Getopt::Long, then initialize Sys::OsPackage
+sub init_params
+{
+    # collect CLI parameters
+    my $notest = 0;
+    GetOptions ( "notest" => \$notest );
+
+    # set up parameters for Sys::OsPackage
+    my %params;
+    if ( $notest ) {
+        $params{notest} = 1;
+    }
+
+    # initialize Sys::OsPackage
+    Sys::OsPackage->init( (keys %params) ? \%params : () );
+    Sys::OsPackage->establish_cpan(); # make sure CPAN is available
+
+    return;
+}
+
+
+# process one item from command line
 sub process
 {
     my $target = shift;
@@ -59,12 +82,20 @@ sub process
 #
 
 # set up
-Sys::OsPackage->init();
-Sys::OsPackage->establish_cpan(); # make sure CPAN is available
+init_params();
 
 # process command line
-foreach my $arg (@ARGV) {
-    process($arg);
+if (@ARGV) {
+    # process elements from command line
+    foreach my $arg (@ARGV) {
+        process($arg);
+    }
+} else {
+    # if empty command line, process lines from STDIN, similar to cpanm usage
+    while (<>) {
+        chomp;
+        process($_);
+    }
 }
 
 __END__
