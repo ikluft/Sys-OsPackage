@@ -1,6 +1,6 @@
 #!/usr/bin/env perl 
 # PODNAME: fetch-reqs.pl
-#        USAGE: ./fetch-reqs.pl  
+#        USAGE: ./fetch-reqs.pl [--debug] [--quiet] [--notest] [[file|module] ...]
 #  DESCRIPTION: install prerequisite modules for a Perl script with minimal prerequisites for this tool
 #       AUTHOR: Ian Kluft (IKLUFT), 
 #      CREATED: 04/14/2022 05:45:29 PM
@@ -12,6 +12,7 @@ use utf8;
 use autodie;
 use Carp qw(carp croak);
 use Getopt::Long;
+use Try::Tiny;
 use Data::Dumper;
 use Sys::OsPackage;
 
@@ -19,14 +20,8 @@ use Sys::OsPackage;
 sub init_params
 {
     # collect CLI parameters
-    my $notest = 0;
-    GetOptions ( "notest" => \$notest );
-
-    # set up parameters for Sys::OsPackage
     my %params;
-    if ( $notest ) {
-        $params{notest} = 1;
-    }
+    GetOptions ( \%params, "debug", "quiet", "notest" );
 
     # initialize Sys::OsPackage
     Sys::OsPackage->init( (keys %params) ? \%params : () );
@@ -81,22 +76,39 @@ sub process
 # mainline
 #
 
-# set up
-init_params();
+# main function called from exception-handling wrapper
+sub main
+{
+    # set up
+    my $ospackage = Sys::OsPackage->instance();
+    $ospackage->debug() and print STDERR "main: begin\n";
+    init_params();
 
-# process command line
-if (@ARGV) {
-    # process elements from command line
-    foreach my $arg (@ARGV) {
-        process($arg);
+    # process command line
+    if (@ARGV) {
+        # process elements from command line
+        foreach my $arg (@ARGV) {
+            process($arg);
+        }
+    } else {
+        # if empty command line, process lines from STDIN, similar to cpanm usage
+        while (<>) {
+            chomp;
+            process($_);
+        }
     }
-} else {
-    # if empty command line, process lines from STDIN, similar to cpanm usage
-    while (<>) {
-        chomp;
-        process($_);
-    }
+    $ospackage->debug() and print STDERR "main: end\n";
+    return 0;
 }
+
+# exception-handling wrapper for main()
+my $rescode = 1;
+try {
+    $rescode = main();
+} catch {
+    print STDERR "error: $_\n";
+};
+exit $rescode;
 
 __END__
 
@@ -109,12 +121,15 @@ fetch-reqs.pl - install prerequisite modules for a Perl script with minimal prer
 
 =head1 USAGE
 
-  fetch-reqs.pl filename [...]
+  fetch-reqs.pl [--debug] [--quiet] [--notest] filename|module [...]
+  cat req-list.txt | fetch-reqs.pl [--debug] [--quiet] [--notest]
 
 =head1 OPTIONS
 
-The files listed on the command line should all be Perl scripts or modules to scan for dependencies.
-Each file's Perl module dependencies will be installed by L<Sys::OsPackage> by operating system packages
+The files listed on the command line should either be file names of Perl scripts or modules
+to scan for dependencies, or names of Perl modules to load.
+Each file's Perl module dependencies or each named Perl module
+will be installed by L<Sys::OsPackage> using operating system packages
 if available, or otherwise via CPAN.
 
 L<Sys::OsPackage> currently contains OS packaging drivers for Fedora/RHEL/CentOS, Debian/Ubuntu, SuSE/OpenSuSE, Arch
@@ -123,11 +138,14 @@ More drivers can be added by creating new subclasses of L<Sys::OsPackage::Driver
 
 =head1 EXIT STATUS
 
-Program exit codes are 0 if no error, 1 if error.
+Standard Unix program exit codes are used: 0 if no error, 1 if error.
 
 =head1 SEE ALSO
 
-L<Sys::OsPackage>
+L<Sys::OsRelease> is used by I<Sys::OsPackage> to detect the operating system by its ID.
+For Linux distributions, it also uses ID_LIKE data to detect common distirbutions it is derived from.
+For example, Linux distributions derived from Debian or Red Hat are not all known,
+but are recognizable with ID_LIKE.
 
 GitHub repository for Sys::OsPackage: L<https://github.com/ikluft/Sys-OsPackage>
 
