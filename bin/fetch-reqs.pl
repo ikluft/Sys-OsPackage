@@ -24,7 +24,7 @@ sub init_params
     GetOptions ( \%params, "debug", "quiet", "notest" );
 
     # initialize Sys::OsPackage
-    Sys::OsPackage->init( (keys %params) ? \%params : () );
+    Sys::OsPackage->init( (scalar keys %params > 0) ? \%params : () );
     Sys::OsPackage->establish_cpan(); # make sure CPAN is available
 
     return;
@@ -32,10 +32,12 @@ sub init_params
 
 
 # process one item from command line
+# returns 1 for success, 0 for failure
 sub process
 {
     my $target = shift;
     my $ospackage = Sys::OsPackage->instance();
+    my $result = 1;
 
     my $basename;
     my $filename = $target;
@@ -51,25 +53,39 @@ sub process
 
     # if the target doesn't specify an existing file, try to install it as a module name
     if ( not -e $filename ) {
-        $ospackage->install_module($target);
-        return;
+        try {
+            $result = $ospackage->install_module($target);
+        } catch {
+            carp "install failed for $target: $!";
+            $result = 0;
+            $ospackage->debug() and print STDERR "debug(process): install_module($target) failed\n";
+        };
+        $ospackage->debug() and print STDERR "debug(process): install_module($target) -> $result\n";
+        return $result;
     }
 
     # scan for dependencies
     require Perl::PrereqScanner::NotQuiteLite;
     my $scanner = Perl::PrereqScanner::NotQuiteLite->new();
     my $deps_ref = $scanner->scan_file($filename);
-    $ospackage->debug() and print STDERR "debug: deps_ref = ".Dumper($deps_ref)."\n";
+    $ospackage->debug() and print STDERR "debug(process): deps_ref = ".Dumper($deps_ref)."\n";
 
     # load Perl modules for dependencies
     my $deps = $deps_ref->requires();
     $ospackage->debug() and print STDERR "deps = ".Dumper($deps)."\n";
     foreach my $module (sort keys %{$deps->{requirements}}) {
         next if $ospackage->mod_is_pragma($module);
-        $ospackage->debug() and print STDERR "install_module($module)\n";
-        $ospackage->install_module($module);
+        $ospackage->debug() and print STDERR "debug(process): install_module($module)\n";
+        try {
+            $result = $result and $ospackage->install_module($module);
+        } catch {
+            carp "install failed for $module: $!";
+            $result = 0;
+            $ospackage->debug() and print STDERR "debug(process): install_module($module) failed\n";
+        };
     }
-    return;
+    $ospackage->debug() and print STDERR "debug(process): result -> $result\n";
+    return $result;
 }
 
 #
@@ -80,29 +96,36 @@ sub process
 sub main
 {
     # set up
+    init_params();
     my $ospackage = Sys::OsPackage->instance();
     $ospackage->debug() and print STDERR "main: begin\n";
-    init_params();
+    my $success = 1;
 
     # process command line
     if (@ARGV) {
         # process elements from command line
         foreach my $arg (@ARGV) {
-            process($arg);
+            if ( not process($arg)) {
+                $success = 0;
+                $ospackage->debug() and print STDERR "main: process($arg) failed\n";
+            }
         }
     } else {
         # if empty command line, process lines from STDIN, similar to cpanm usage
-        while (<>) {
-            chomp;
-            process($_);
+        while (my $target = <>) {
+            chomp $target;
+            if ( not process($target)) {
+                $success = 0;
+                $ospackage->debug() and print STDERR "main: process($target) failed\n";
+            }
         }
     }
     $ospackage->debug() and print STDERR "main: end\n";
-    return 0;
+    return ($success ? 0 : 1);
 }
 
 # exception-handling wrapper for main()
-my $rescode = 1;
+my $rescode = 1; # assume failure until/unless success result is returned from main
 try {
     $rescode = main();
 } catch {

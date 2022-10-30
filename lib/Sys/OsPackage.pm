@@ -118,7 +118,7 @@ sub class_or_obj
 
     # safety net: all-stop if we received an undef
     if (not defined $coo) {
-        confess "coo got undef from:".(join "|", caller 1);
+        confess "class_or_obj() got undef from: ".(join "|", caller 1);
     }
 
     # return the instance
@@ -321,27 +321,27 @@ sub module_installed
 {
     my ($class_or_obj, $name, $value) = @_;
     my $self = class_or_obj($class_or_obj);
-
-    # if a value is provided then act as a write accessor to the module_installed flag for the module
-    if (defined $value) {
-        my $flag = $value ? 1 : 0;
-        $self->{module_installed}{$name} = $flag;
-        return $flag;
-    }
-
-    # short-circuit the search if we installed the module or already found it installed
-    return 1 if deftrue($self->{module_installed}{$name});
+    my $found = 0;
 
     # check each path element for the module
     my $modfile = join("/", split(/::/x, $name));
     foreach my $element (@INC) {
         my $filepath = "$element/$modfile.pm";
         if (-f $filepath) {
-            $self->{module_installed}{$name} = 1;
-            return 1;
+            $found = 1;
+            last;
         }
     }
-    return 0;
+
+    # if a value is provided, act as a write accessor to the module_installed flag for the module
+    # Set it to true if a true value was provided and the module was found in the @INC path.
+    if (defined $value) {
+        if ( $found and $value ) {
+            $self->{module_installed}{$name} = $found;
+        }
+    }
+
+    return $found;
 }
 
 # run an external command and capture its standard output
@@ -917,14 +917,18 @@ sub pkg_installed
 }
 
 # check if module is installed, and install it if not present
+# throws exception on failure
 sub install_module
 {
     my ($class_or_obj, $name) = @_;
     my $self = class_or_obj($class_or_obj);
-    $self->debug() and print STDERR "debug: install_module($name)\n";
+    $self->debug() and print STDERR "debug: install_module($name) begin\n";
+    my $result = $self->module_installed($name);
 
     # check if module is installed
-    if (not $self->module_installed($name)) {
+    if ($result) {
+        $self->debug() and print STDERR "debug: install_module($name) skip - already installed\n";
+    } else {
         # print header for module installation
         if (not $self->quiet()) {
             print  $self->text_green().('-' x 75)."\n";
@@ -932,16 +936,14 @@ sub install_module
         }
 
         # try first to install it with an OS package (root required)
-        my $done=0;
         if ($self->is_root()) {
             if ($self->module_package($name)) {
-                $self->module_installed($name, 1);
-                $done=1;
+                $result = $self->module_installed($name, 1);
             }
         }
 
         # try again with CPAN or CPANMinus if it wasn't installed by a package
-        if (not $done) {
+        if (not $result) {
             my ($cmd, @test_param);
             if (defined $self->sysenv("cpan")) {
                 $cmd = $self->sysenv("cpan");
@@ -952,10 +954,11 @@ sub install_module
             }
             $self->run_cmd($cmd, @test_param, $name)
                 or croak "failed to install $name module";
-            $self->module_installed($name, 1);
+            $result = $self->module_installed($name, 1);
         }
     }
-    return;
+    $self->debug() and print STDERR "debug: install_module($name) result=$result\n";
+    return $result;
 }
 
 # bootstrap CPAN-Minus in a subdirectory of the current directory
@@ -1060,11 +1063,11 @@ sub establish_cpan
         }
     }
 
-    # install dependencies for this tool
+    # install modules used by Sys::OsPackage or CPAN
     foreach my $dep (@{perlconf("module_deps")}) {
         $self->install_module($dep);
     }
-    return;
+    return 1;
 }
 
 1;
