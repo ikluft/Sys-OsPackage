@@ -1,4 +1,4 @@
-Change log for Sys::OsRelease
+Change log for Sys::OsPackage
 
 {{$NEXT}}
  [API CHANGE]
@@ -16,6 +16,18 @@ Change log for Sys::OsRelease
  [REVISION]
 
  [SECURITY]
+
+0.2.0 2022-10-30T12:24:27-07:00 America/Los_Angeles
+ [BUG FIXES]
+ - improved error reporting in Sys::OsPackage & fetch-reqs.pl
+
+ [MINOR]
+ - fetch-reqs.pl: add --notest, --quiet & --debug CLI flags
+ - fetch-reqs.pl: read STDIN like cpanm if empty command line
+ - add notest flag in Sys::OsPackage
+
+ [REVISION]
+ - add tests for fetch-reqs.pl script, +78 test cases
 
 0.1.7 2022-10-21T22:37:28-07:00 America/Los_Angeles
  [BUG FIXES]
