@@ -51,7 +51,8 @@ sub find
     return if not $class->pkgcmd($ospkg);
 
     my $querycmd = $ospkg->sysenv("apt-cache");
-    my @pkglist = sort $ospkg->capture_cmd({list=>1}, $querycmd, qw(search --quiet=2), '^'.$args_ref->{pkg}.'$');
+    my @pkglist = sort $ospkg->capture_cmd({list=>1}, $ospkg->sudo_cmd(), $querycmd, qw(search --quiet=2),
+        '^'.$args_ref->{pkg}.'$');
     return if not scalar @pkglist; # empty list means nothing found
     return $pkglist[-1]; # last of sorted list should be most recent version
 }
@@ -74,7 +75,7 @@ sub install
 
     # install the packages
     my $pkgcmd = $ospkg->sysenv("apt");
-    return $ospkg->run_cmd($pkgcmd, "install", "--yes", @packages);
+    return $ospkg->run_cmd($ospkg->sudo_cmd(), $pkgcmd, "install", "--yes", @packages);
 }
 
 # check if an OS package is installed locally
@@ -85,7 +86,8 @@ sub is_installed
 
     # check if package is installed
     my $querycmd = $ospkg->sysenv("dpkg-query");
-    my @pkglist = $ospkg->capture_cmd({list=>1}, $querycmd, '--show', '--showformat=\${package}\n', $args_ref->{pkg});
+    my @pkglist = $ospkg->capture_cmd({list=>1}, $ospkg->sudo_cmd(), $querycmd, '--show',
+        '--showformat=\${package}\n', $args_ref->{pkg});
     return (scalar @pkglist > 0) ? 1 : 0;
 }
 

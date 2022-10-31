@@ -1,6 +1,6 @@
 #!/usr/bin/env perl 
 # PODNAME: fetch-reqs.pl
-#        USAGE: ./fetch-reqs.pl [--debug] [--quiet] [--notest] [[file|module] ...]
+#        USAGE: ./fetch-reqs.pl [--debug] [--quiet] [--notest] [--sudo] [[file|module] ...]
 #  DESCRIPTION: install prerequisite modules for a Perl script with minimal prerequisites for this tool
 #       AUTHOR: Ian Kluft (IKLUFT), 
 #      CREATED: 04/14/2022 05:45:29 PM
@@ -21,7 +21,7 @@ sub init_params
 {
     # collect CLI parameters
     my %params;
-    GetOptions ( \%params, "debug", "quiet", "notest" );
+    GetOptions ( \%params, "debug", "quiet", "notest", "sudo" );
 
     # initialize Sys::OsPackage
     Sys::OsPackage->init( (scalar keys %params > 0) ? \%params : () );
@@ -144,8 +144,8 @@ fetch-reqs.pl - install prerequisite modules for a Perl script with minimal prer
 
 =head1 USAGE
 
-  fetch-reqs.pl [--debug] [--quiet] [--notest] filename|module [...]
-  cat req-list.txt | fetch-reqs.pl [--debug] [--quiet] [--notest]
+  fetch-reqs.pl [--debug] [--quiet] [--notest] [--sudo] filename|module [...]
+  cat req-list.txt | fetch-reqs.pl [--debug] [--quiet] [--notest] [--sudo]
 
 =head1 OPTIONS
 

@@ -229,22 +229,46 @@ sub debug
     return $self->{debug};
 }
 
+# read-only accessor for boolean flags
+sub ro_flag_accessor
+{
+    my ($class_or_obj, $name) = @_;
+    my $self = class_or_obj($class_or_obj);
+
+    return deftrue($self->{_config}{$name});
+}
+
 # read-only accessor for quiet flag
 sub quiet
 {
     my ($class_or_obj) = @_;
-    my $self = class_or_obj($class_or_obj);
-
-    return deftrue($self->{_config}{quiet});
+    return ro_flag_accessor($class_or_obj, "quiet");
 }
 
 # read-only accessor for notest flag
 sub notest
 {
     my ($class_or_obj) = @_;
-    my $self = class_or_obj($class_or_obj);
+    return ro_flag_accessor($class_or_obj, "notest");
+}
 
-    return deftrue($self->{_config}{notest});
+# read-only accessor for sudo flag
+sub sudo
+{
+    my ($class_or_obj) = @_;
+    return ro_flag_accessor($class_or_obj, "sudo");
+}
+
+# for generation of commands with sudo: return sudo or empty list depending on --sudo flag
+# The sudo command is not generated if the user already has root privileges.
+sub sudo_cmd
+{
+    my ($class_or_obj) = @_;
+    my $self = class_or_obj($class_or_obj);
+    if ($self->sudo() and not $self->is_root()) {
+        return "sudo";
+    }
+    return ();
 }
 
 # read/write accessor for system environment data
@@ -788,7 +812,7 @@ sub is_root
     my ($class_or_obj) = @_;
     my $self = class_or_obj($class_or_obj);
 
-    return (defined $self->sysenv("root")) ? ($self->sysenv("root") != 0) : 0;
+    return deftrue($self->sysenv("root"));
 }
 
 # handle various systems' packagers
@@ -886,8 +910,8 @@ sub module_package
     my $self = class_or_obj($class_or_obj);
 
     # check if we can install a package
-    if (not $self->is_root()) {
-        # must be root to install an OS package
+    if (not $self->is_root() and not $self->sudo()) {
+        # must be root or set sudo flag in order to install an OS package
         return 0;
     }
     if (not $self->call_pkg_driver(op => "implemented")) {
@@ -936,7 +960,7 @@ sub install_module
         }
 
         # try first to install it with an OS package (root required)
-        if ($self->is_root()) {
+        if ($self->is_root() or $self->sudo()) {
             if ($self->module_package($name)) {
                 $result = $self->module_installed($name, 1);
             }

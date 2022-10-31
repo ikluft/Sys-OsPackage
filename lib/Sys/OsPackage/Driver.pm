@@ -29,6 +29,16 @@ sub ping
     return $class;
 }
 
+# demonstrate modules are able to read the sudo flag via Sys::OsPackage's class interface
+# returns "sudo" if the sudo flag is set and user is not already root, otherwise an empty list
+sub sudo_check
+{
+    my ($class, $ospkg ) = @_;
+
+    my $cmd = $ospkg->sudo_cmd();
+    return $cmd;
+}
+
 1;
 
 __END__
