@@ -138,14 +138,16 @@ __END__
 # POD documentation
 =encoding utf8
 
-=head1 NAME
-
-fetch-reqs.pl - install prerequisite modules for a Perl script with minimal prerequisites for this tool
-
 =head1 USAGE
 
   fetch-reqs.pl [--debug] [--quiet] [--notest] [--sudo] filename|module [...]
   cat req-list.txt | fetch-reqs.pl [--debug] [--quiet] [--notest] [--sudo]
+
+=head1 DESCRIPTION
+
+I<fetch-reqs.pl> is the command-line interface for L<Sys::OsPackage>. It installs prerequisite modules for
+a named Perl script, or directly installs Perl modules via the OS packaging system.
+It falls back to installation with CPAN if the module is not packaged for the OS.
 
 =head1 OPTIONS
 
