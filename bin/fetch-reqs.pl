@@ -149,11 +149,42 @@ fetch-reqs.pl - install prerequisite modules for a Perl script with minimal prer
 
 =head1 OPTIONS
 
+The following command-line flags are available.
+
+=over 1
+
+=item --notest
+
+Similar to the option in L<cpanm>, --notest installs modules without running automated tests.
+
+=item --sudo
+
+Similar to the option in L<cpanm>, the --sudo flag enables running commands with "sudo" to
+run install commands as the root user.
+The sudo command must be separately installed on the system or container if this is used.
+
+=item --quiet
+
+When this flag is on, output status is reduced.
+
+=item --debug
+
+This flag is used for development to print internal details of the program run.
+If requesting help or submitting a bug report, it is useful to include this output for developers to see
+what happened on your system.
+
+=back
+
 The files listed on the command line should either be file names of Perl scripts or modules
 to scan for dependencies, or names of Perl modules to load.
 Each file's Perl module dependencies or each named Perl module
 will be installed by L<Sys::OsPackage> using operating system packages
 if available, or otherwise via CPAN.
+
+If no file or module names are inclued on the command line, then the standard input is read
+for those parameters, each on their own separate line.
+
+=head1 OS PACKAGING DRIVERS
 
 L<Sys::OsPackage> currently contains OS packaging drivers for Fedora/RHEL/CentOS, Debian/Ubuntu, SuSE/OpenSuSE, Arch
 and Alpine Linux and their derivatives.
