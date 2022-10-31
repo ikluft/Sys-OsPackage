@@ -17,6 +17,17 @@ Change log for Sys::OsPackage
 
  [SECURITY]
 
+0.3.0 2022-10-30T20:08:27-07:00 America/Los_Angeles
+ [DOCS]
+ - add docs for CLI options: --debug --quiet --notest --sudo
+
+ [MINOR]
+ - add --sudo flag (like cpanm) to use sudo for root access during module
+   installation
+
+ [REVISION]
+ - add ExecDir to Dist::Zilla config
+
 0.2.0 2022-10-30T12:24:27-07:00 America/Los_Angeles
  [BUG FIXES]
  - improved error reporting in Sys::OsPackage & fetch-reqs.pl
