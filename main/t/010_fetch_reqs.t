@@ -207,7 +207,9 @@ sub init_tempdir
     # reset HOME and CPAN config to prevent interference from user environment when running manually
     $ENV{HOME} = $paths{temp_dir};
     $ENV{XDG_DATA_HOME} = $paths{temp_dir}."/".$xdg_data_home;
-    $ENV{TMPDIR} = $paths{temp_dir}; # capture CPAN::Shell's temporary files in our log directory
+    if (not exists $ENV{TMPDIR}) {
+        $ENV{TMPDIR} = $paths{temp_dir}; # capture CPAN::Shell's temporary files in our log directory
+    }
 
     return \%paths;
 }
@@ -272,7 +274,7 @@ sub test_exist
     } elsif ($child_error != 0) {
         printf STDERR "test %03d: child exited with value %d\n", $test_num, ($child_error >> 8);
     }
-    is ( $retval, 0, sprintf("%03d/%s/%s: install %s, install should work", $test_num, $pipe_label, $notest_label,
+    is ( $retval >> 8, 0, sprintf("%03d/%s/%s: install %s, install should work", $test_num, $pipe_label, $notest_label,
         $mod ));
 
     # check if tests were run as expected
