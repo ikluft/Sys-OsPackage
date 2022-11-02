@@ -1,0 +1,3 @@
+# temporary files and directories to ignore in sys-ospkg-test directory
+logs/
+Sys-OsPackage-*.tar.gz
