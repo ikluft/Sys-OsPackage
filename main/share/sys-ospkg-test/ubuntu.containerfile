@@ -1,6 +1,9 @@
 FROM ubuntu:20.04
 WORKDIR /opt/container
+ENV TZ=UTC
 COPY container-startup.sh Sys-OsPackage-*.tar.gz .
-RUN apt update && apt install -y tar tree perl perl-modules-5.30 cpanminus libdist-zilla-perl \
-    libdist-zilla-plugin-installguide-perl libdist-zilla-plugin-podweaver-perl
-CMD /usr/bin/perl /opt/container/container-startup.sh
+RUN apt-get update && apt-get install -y tar make gcc tree perl perl-modules-5.30 cpanminus libwww-perl \
+    libyaml-perl libperl-prereqscanner-notquitelite-perl libfile-sharedir-perl libfile-copy-recursive-perl \
+    libtext-diff-perl
+VOLUME /opt/container/logs
+CMD /opt/container/container-startup.sh
