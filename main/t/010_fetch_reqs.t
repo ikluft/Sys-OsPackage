@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 # t/010_fetch_reqs.t - test bin/fetch-reqs.pl script
 use strict;
 use warnings;

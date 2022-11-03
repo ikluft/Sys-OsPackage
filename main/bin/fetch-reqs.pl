@@ -1,4 +1,4 @@
-#!/usr/bin/env perl 
+#!/usr/bin/perl 
 # PODNAME: fetch-reqs.pl
 #        USAGE: ./fetch-reqs.pl [--debug] [--quiet] [--notest] [--sudo] [[file|module] ...]
 #  DESCRIPTION: install prerequisite modules for a Perl script with minimal prerequisites for this tool
