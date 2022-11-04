@@ -5,6 +5,12 @@ Modules in this distribution:
 
 As an overview, the manual for the Sys::OsPackage library follows.
 
+# Presentations
+
+November 3, 2022 at Silicon Valley Perl: [slides](doc/pres-2022-11-sys-ospackage.pdf) (PDF)
+
+<a href="doc/pres-2022-11-sys-ospackage.pdf"><img src="doc/slide1-screenshot-scaled.png"/></a>
+
 # SYNOPSIS
 
     use Sys::OsPackage;
