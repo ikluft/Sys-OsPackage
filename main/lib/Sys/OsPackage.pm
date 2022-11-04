@@ -1117,7 +1117,7 @@ If the module is available as an OS package, it installs it via the packaging sy
 Otherwise it runs CPAN to install the module.
 
 The use cases of I<Sys::OsPackage> include setting up systems or containers with Perl modules using OS packages
-as often as possible. It can also be used fvor installing dependencies for a Perl script on an existing system.
+as often as possible. It can also be used for installing dependencies for a Perl script on an existing system.
 
 OS packaging systems currently supported by I<Sys::OsPackage> are the Linux distributions Alpine, Arch, Debian,
 Fedora and OpenSuse.
