@@ -63,6 +63,8 @@ jobs:
          cat  /Users/runner/.cpanm/work/*/build.log
 
     - name: Run tests
+      env:
+        RELEASE_TESTING: 1
       run: |
         cd main
         dzil test
