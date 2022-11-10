@@ -37,7 +37,13 @@ jobs:
     - name: Install Dist::Zilla
       run: |
         cpanm -v
-        cpanm --notest Dist::Zilla
+        if egrep --quiet '^(ID|ID_LIKE)=.*(debian|ubuntu)' /etc/os-release \
+        then \
+          apt-get update \
+          apt-get install libdist-zilla-perl \
+        else \
+          cpanm --notest Dist::Zilla \
+        fi
 
     - name: Install Modules
       run: |
@@ -63,8 +69,6 @@ jobs:
          cat  /Users/runner/.cpanm/work/*/build.log
 
     - name: Run tests
-      #env:
-      #  RELEASE_TESTING: 1
       run: |
         cd main
         dzil test
