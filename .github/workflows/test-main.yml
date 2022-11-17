@@ -1,5 +1,5 @@
 ---
-name: Perl
+name: Sys_OsPackage
 # yamllint disable rule:line-length
 on:  # yamllint disable-line rule:truthy
   push:
