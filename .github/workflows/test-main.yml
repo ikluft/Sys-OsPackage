@@ -57,4 +57,4 @@ jobs:
       - name: Run tests
         run: |
           cd main
-          dzil test
+          dzil test --release
