@@ -15,7 +15,7 @@ use utf8;
 
 package Sys::OsPackage::Driver::Debian;
 
-use base "Sys::OsPackage::Driver";
+use parent "Sys::OsPackage::Driver";
 
 # check if packager command found (deb)
 sub pkgcmd
