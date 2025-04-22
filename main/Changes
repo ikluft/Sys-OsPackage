@@ -12,6 +12,7 @@ Change log for Sys::OsPackage
  [MAJOR]
 
  [MINOR]
+ - add --without-recommends and --without-suggests to cpanm calls to improve performance and reduce noise
 
  [REVISION]
 

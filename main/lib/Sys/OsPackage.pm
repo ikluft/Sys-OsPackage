@@ -975,6 +975,8 @@ sub install_module
             } else {
                 $cmd = $self->sysenv("cpanm");
                 $self->notest() and push @test_param, "--notest";
+                push @test_param, "--without-recommends";
+                push @test_param, "--without-suggests";
             }
             $self->run_cmd($cmd, @test_param, $name)
                 or croak "failed to install $name module";
